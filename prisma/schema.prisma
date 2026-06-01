@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  imageUrl    String?
+  stockStatus String      @default("IN_STOCK") // IN_STOCK, OUT_OF_STOCK
+  category    String      @default("Pickle")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customerName  String
+  phone         String
+  altPhone      String?
+  address       String
+  landmark      String?
+  city          String
+  state         String
+  pincode       String
+  notes         String?
+  totalAmount   Float
+  status        String      @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
+  paymentMethod String      @default("COD")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
