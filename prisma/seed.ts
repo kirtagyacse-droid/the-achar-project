@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 async function main() {
   const products = [
     {
-      name: 'Teekha Hari Mirch',
+      name: 'Teekhi Hari Mirch',
       description: 'Spicy and tangy green chili pickle made with authentic Rajasthani spices. Perfect to spice up any meal!',
       price: 450,
       imageUrl: '/uploads/teekha-hari-mirch.jpg',
@@ -26,14 +26,14 @@ async function main() {
       category: 'Pickle'
     },
     {
-      name: 'Kayri with Kabli Chana',
+      name: 'Kayri with Kabuli Chana',
       description: 'Mango pickle combined with chickpeas. A unique texture and burst of flavors.',
       price: 600,
       imageUrl: '/uploads/kayri-with-kabli-chana.jpg',
       category: 'Pickle'
     },
     {
-      name: 'Kayri with Deshi Chana',
+      name: 'Kayri with Desi Chana',
       description: 'Traditional mango pickle with desi chana. Packed with protein and authentic taste.',
       price: 600,
       imageUrl: '/uploads/kayri-with-deshi-chana.jpg',
@@ -47,8 +47,8 @@ async function main() {
       category: 'Pickle'
     },
     {
-      name: 'Lasuwa',
-      description: 'Authentic Rajasthani Lasode (Gunda) pickle. A rare delicacy with incredible flavor.',
+      name: 'Lehsua',
+      description: 'Authentic Rajasthani Lehsua (Gunda) pickle. A rare delicacy with incredible flavor.',
       price: 700,
       imageUrl: '/uploads/lasuwa.jpg',
       category: 'Pickle'

@@ -25,7 +25,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       } else if (filter === 'lemon') {
         return name.includes('nimbu') || name.includes('lemon');
       } else if (filter === 'delicacies') {
-        return name.includes('lasuwa') || name.includes('gunda') || name.includes('lasode');
+        return name.includes('lehsua') || name.includes('lasuwa') || name.includes('gunda') || name.includes('lasode');
       }
       return true;
     });
@@ -38,7 +38,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       case 'mango': return 'Mango Pickles (Kayri)';
       case 'chili': return 'Green Chili Pickles';
       case 'lemon': return 'Lemon Pickles (Nimbu)';
-      case 'delicacies': return 'Traditional Delicacies (Lasuwa)';
+      case 'delicacies': return 'Traditional Delicacies (Lehsua)';
       default: return 'Our Pickles Menu';
     }
   };

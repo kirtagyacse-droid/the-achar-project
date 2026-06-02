@@ -78,7 +78,7 @@ export default async function Home() {
               <h2 className="story-title">Ghar Ka Swaad, Honored Across Generations</h2>
               <div className="story-text">
                 <p>
-                  Every jar of our pickle is a labor of love. We start by sourcing raw mangoes, tender lasude, and fresh green chilies from local farms in Jaipur.
+                  Every jar of our pickle is a labor of love. We start by sourcing raw mangoes, tender lehsua, and fresh green chilies from local farms in Jaipur.
                 </p>
                 <p>
                   Following the instructions passed down by our grandmothers, we sun-dry our ingredients, blend them with freshly ground spices, and submerge them in pure mustard oil. We let them sit under the warm Rajasthani sun to mature naturally.

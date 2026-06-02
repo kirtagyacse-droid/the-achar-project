@@ -88,7 +88,7 @@ export default function Navbar() {
             Lemon (Nimbu)
           </Link>
           <Link href="/products?category=delicacies" className="category-item">
-            Delicacies (Lasuwa)
+            Delicacies (Lehsua)
           </Link>
         </div>
       </div>

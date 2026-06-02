@@ -7,7 +7,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
-    if (!token || token !== process.env.ADMIN_PASSWORD) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || !token || token !== adminPassword) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,7 +39,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
-    if (!token || token !== process.env.ADMIN_PASSWORD) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || !token || token !== adminPassword) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 

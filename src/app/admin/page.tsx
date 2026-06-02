@@ -20,7 +20,7 @@ export default async function AdminDashboard() {
   return (
     <div className="container" style={{ padding: '40px 0 100px' }}>
       <h1 className="heading-serif text-center" style={{ fontSize: '2.8rem', marginBottom: '40px' }}>
-        Auntie's Admin Dashboard
+        Admin Dashboard
       </h1>
       <AdminClient 
         initialOrders={JSON.parse(JSON.stringify(orders))} 

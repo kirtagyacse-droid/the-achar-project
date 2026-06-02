@@ -72,12 +72,12 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
   const imagePresets = [
     { label: 'Classic Mango (Sour/Khatta)', value: '/uploads/kayri-ka-khatta.jpg' },
     { label: 'Sweet Mango (Meetha)', value: '/uploads/kayri-ka-meetha.jpg' },
-    { label: 'Green Chili (Teekha Hari Mirch)', value: '/uploads/teekha-hari-mirch.jpg' },
-    { label: 'Lasuwa (Artisanal Delicacy)', value: '/uploads/lasuwa.jpg' },
+    { label: 'Green Chili (Teekhi Hari Mirch)', value: '/uploads/teekha-hari-mirch.jpg' },
+    { label: 'Lehsua (Artisanal Delicacy)', value: '/uploads/lasuwa.jpg' },
     { label: 'Lemon (Nimbu Khatta Meetha)', value: '/uploads/nimbu-khatta-meetha.jpg' },
     { label: 'Mango with Onion', value: '/uploads/kayri-with-onion.jpg' },
-    { label: 'Mango with Deshi Chana', value: '/uploads/kayri-with-deshi-chana.jpg' },
-    { label: 'Mango with Kabli Chana', value: '/uploads/kayri-with-kabli-chana.jpg' }
+    { label: 'Mango with Desi Chana', value: '/uploads/kayri-with-deshi-chana.jpg' },
+    { label: 'Mango with Kabuli Chana', value: '/uploads/kayri-with-kabli-chana.jpg' }
   ];
 
   // Handler to toggle product stock status
@@ -310,7 +310,7 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
                     <input 
                       required 
                       type="text" 
-                      placeholder="e.g. Special Teekha Hari Mirch" 
+                      placeholder="e.g. Special Teekhi Hari Mirch" 
                       className="form-control"
                       value={newProduct.name}
                       onChange={e => setNewProduct({...newProduct, name: e.target.value})}
