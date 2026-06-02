@@ -42,6 +42,29 @@ export async function POST(req: Request) {
       }
     });
 
+    // Update product stock counts
+    try {
+      for (const item of items) {
+        const prod = await prisma.product.findUnique({
+          where: { id: item.productId }
+        });
+        if (prod) {
+          const newCount = Math.max(0, prod.stockCount - item.quantity);
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: {
+              stockCount: newCount,
+              stockStatus: newCount === 0 ? 'OUT_OF_STOCK' : prod.stockStatus
+            }
+          });
+        }
+      }
+    } catch (stockError) {
+      console.error('Error updating stock counts:', stockError);
+      // Don't fail the order if stock update fails, but log it
+    }
+
+
     // Format Telegram Message
     let itemsText = '';
     order.items.forEach((item, index) => {
