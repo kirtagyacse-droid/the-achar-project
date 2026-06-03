@@ -8,37 +8,48 @@ datasource db {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  imageUrl    String?
-  stockStatus String      @default("IN_STOCK") // IN_STOCK, OUT_OF_STOCK
-  stockCount  Int         @default(10)
-  spiciness   Int         @default(2) // 0: Sweet, 1: Mild, 2: Medium, 3: Hot/Spicy
-  category    String      @default("Pickle")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
+  id            String      @id @default(uuid())
+  name          String
+  description   String
+  price         Float
+  imageUrl      String?
+  stockStatus   String      @default("IN_STOCK") // IN_STOCK, OUT_OF_STOCK
+  stockCount    Int         @default(10)
+  spiciness     Int         @default(2) // 0: Sweet, 1: Mild, 2: Medium, 3: Hot/Spicy
+  category      String      @default("Pickle")
+  batchNumber   String?     // e.g. "Batch #042"
+  batchDate     DateTime?   // when this batch was made
+  tastingNotes  String?     // wine-style flavor description text
+  flavorProfile Json?       // { tangy: 0-5, spicy: 0-5, sweet: 0-5, savory: 0-5, salty: 0-5 }
+  sizes         Json?       // [{ label: "250g", weightG: 250, price: 180 }, ...]
+  processImages String[]    // array of image URLs for the sun-process gallery
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  customerName  String
-  phone         String
-  altPhone      String?
-  address       String
-  landmark      String?
-  city          String
-  state         String
-  pincode       String
-  notes         String?
-  totalAmount   Float
-  status        String      @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
-  paymentMethod String      @default("COD")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  items         OrderItem[]
+  id               String      @id @default(uuid())
+  customerName     String
+  phone            String
+  altPhone         String?
+  address          String
+  landmark         String?
+  city             String
+  state            String
+  pincode          String
+  notes            String?
+  totalAmount      Float
+  status           String      @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
+  paymentMethod    String      @default("COD")
+  isGiftOrder      Boolean     @default(false)
+  giftMessage      String?
+  giftPackaging    String?     // "cloth-wrap" | "wooden-crate" | null
+  referralCode     String?     // referral code used at checkout
+  dispatchPhotoUrl String?     // photo Aunty uploads as proof of packing
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
 }
 
 model OrderItem {
@@ -50,3 +61,72 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 }
+
+model Subscription {
+  id            String    @id @default(cuid())
+  customerName  String
+  phone         String
+  email         String?
+  address       String
+  planJars      Int       @default(2)     // jars per month
+  isActive      Boolean   @default(true)
+  nextDelivery  DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model PicklePassport {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  customerName  String
+  stamps        String[]  // array of product IDs that have been tried
+  isComplete    Boolean   @default(false)
+  freeJarClaimed Boolean  @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JarReturn {
+  id            String    @id @default(cuid())
+  phone         String
+  customerName  String
+  jarCount      Int
+  discountApplied Boolean @default(false)
+  loggedAt      DateTime  @default(now())
+}
+
+model Referral {
+  id             String    @id @default(cuid())
+  referrerPhone  String
+  referrerName   String
+  referralCode   String    @unique
+  usedByPhone    String?
+  usedByName     String?
+  referrerCredit Int       @default(0)   // in rupees
+  refereeDiscount Int      @default(0)   // in rupees
+  isUsed         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  coverImage  String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model FestivalAlert {
+  id           String   @id @default(cuid())
+  name         String   // "Diwali 2025"
+  festivalDate DateTime
+  alertDate    DateTime // when to show the prep reminder (2-3 weeks before)
+  isDismissed  Boolean  @default(false)
+  message      String?
+}
+

@@ -1,10 +1,12 @@
 "use client";
 import { useCart } from '@/context/CartContext';
+import { useGiftingMode } from '@/context/GiftingModeContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart();
+  const { isGiftingMode, giftMessage, giftPackaging } = useGiftingMode();
   const router = useRouter();
   
   const [formData, setFormData] = useState({
@@ -22,9 +24,67 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Coupon States
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: 'flat' | 'percentage';
+    discountValue: number;
+    message: string;
+  } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCode) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const response = await fetch('/api/discount/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode, phone: formData.phone })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Validation failed');
+      }
+      if (data.valid) {
+        setAppliedCoupon({
+          code: data.code,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+          message: data.message
+        });
+        setCouponCode('');
+      } else {
+        setCouponError(data.message || 'Invalid coupon code');
+        setAppliedCoupon(null);
+      }
+    } catch (err: any) {
+      setCouponError(err.message || 'Error validating coupon');
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const packagingFee = isGiftingMode && giftPackaging === 'wooden-crate' ? 150 : 0;
+  let finalPrice = totalPrice + packagingFee;
+  let discountDeduction = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === 'flat') {
+      discountDeduction = appliedCoupon.discountValue;
+    } else {
+      discountDeduction = Math.round(totalPrice * appliedCoupon.discountValue);
+    }
+    finalPrice = Math.max(0, finalPrice - discountDeduction);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +99,13 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          totalAmount: totalPrice,
+          totalAmount: finalPrice,
+          referralCode: appliedCoupon ? appliedCoupon.code : null,
+          isGiftOrder: isGiftingMode,
+          giftMessage: isGiftingMode ? giftMessage : null,
+          giftPackaging: isGiftingMode ? (giftPackaging === 'none' ? null : giftPackaging) : null,
           items: cart.map(item => ({
-            productId: item.id,
+            productId: item.productId || item.id.split('-')[0], // Extract raw uuid from cart item id if split by size
             quantity: item.quantity,
             price: item.price
           }))
@@ -54,6 +118,8 @@ export default function CheckoutPage() {
         throw new Error(data.message || 'Something went wrong');
       }
       
+      // Save visitor history order flag
+      localStorage.setItem('achar_order_history_placed', 'true');
       clearCart();
       router.push(`/checkout/success?id=${data.orderId}`);
     } catch (err: any) {
@@ -61,6 +127,7 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
 
   if (cart.length === 0 && !loading) {
     return (
@@ -161,11 +228,70 @@ export default function CheckoutPage() {
               <span style={{ color: 'var(--color-success)' }}>Free</span>
             </div>
             
+            {isGiftingMode && giftPackaging === 'wooden-crate' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '0.9rem' }}>
+                <span>Wooden Crate Fee</span>
+                <span>₹150</span>
+              </div>
+            )}
+            
+            {appliedCoupon && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '0.9rem', color: 'var(--color-success)' }}>
+                <span>Discount</span>
+                <span>-₹{discountDeduction}</span>
+              </div>
+            )}
+            
+            {/* Have a referral/discount code form */}
+            <hr style={{ border: 'none', borderTop: '1px solid #DDD', margin: '15px 0' }} />
+            
+            {!appliedCoupon ? (
+              <div style={{ marginBottom: '15px' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Have a referral or jar-return code?</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter code"
+                    className="form-control"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '0.85rem', flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    className="btn-lux-primary"
+                    style={{ padding: '8px 16px', fontSize: '0.85rem', margin: 0 }}
+                    disabled={couponLoading}
+                  >
+                    {couponLoading ? '...' : 'Apply'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-success-light)', padding: '8px 12px', borderRadius: '2px', marginBottom: '15px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                  Code {appliedCoupon.code} Applied!
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAppliedCoupon(null)}
+                  style={{ background: 'none', border: 'none', color: '#7B1C1C', fontSize: '1.2rem', cursor: 'pointer', padding: '0 4px', fontWeight: 'bold' }}
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+            
+            {couponError && (
+              <p style={{ color: '#7B1C1C', fontSize: '0.8rem', marginBottom: '15px', marginTop: '-10px' }}>{couponError}</p>
+            )}
+            
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '20px 0' }} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold' }}>
               <span>Total</span>
-              <span style={{ color: 'var(--color-accent)' }}>₹{totalPrice}</span>
+              <span style={{ color: 'var(--color-accent)' }}>₹{finalPrice}</span>
             </div>
             
             <div style={{ marginTop: '20px', padding: '15px', backgroundColor: 'var(--color-success-light)', color: 'var(--color-success)', fontSize: '0.9rem', textAlign: 'center' }}>

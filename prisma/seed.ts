@@ -13,42 +13,42 @@ async function main() {
       spiciness: 3
     },
     {
-      name: 'Kayri ka Khatta',
+      name: 'Keri ka Khatta',
       description: 'Classic sour mango pickle. The traditional taste of Rajasthan in every bite.',
       price: 600,
-      imageUrl: '/uploads/kayri-ka-khatta.jpg',
+      imageUrl: '/uploads/keri-ka-khatta.jpg',
       category: 'Pickle',
       spiciness: 2
     },
     {
-      name: 'Kayri ka Meetha',
+      name: 'Keri ka Meetha',
       description: 'Sweet and sour mango pickle. A delicious treat that pairs wonderfully with parathas.',
       price: 600,
-      imageUrl: '/uploads/kayri-ka-meetha.jpg',
+      imageUrl: '/uploads/keri-ka-meetha.jpg',
       category: 'Pickle',
       spiciness: 0
     },
     {
-      name: 'Kayri with Kabuli Chana',
+      name: 'Keri with Kabuli Chana',
       description: 'Mango pickle combined with chickpeas. A unique texture and burst of flavors.',
       price: 600,
-      imageUrl: '/uploads/kayri-with-kabli-chana.jpg',
+      imageUrl: '/uploads/keri-with-kabli-chana.jpg',
       category: 'Pickle',
       spiciness: 2
     },
     {
-      name: 'Kayri with Desi Chana',
+      name: 'Keri with Desi Chana',
       description: 'Traditional mango pickle with desi chana. Packed with protein and authentic taste.',
       price: 600,
-      imageUrl: '/uploads/kayri-with-deshi-chana.jpg',
+      imageUrl: '/uploads/keri-with-deshi-chana.jpg',
       category: 'Pickle',
       spiciness: 2
     },
     {
-      name: 'Kayri with Onion',
+      name: 'Keri with Onion',
       description: 'Mango and onion pickle. A savory delight that elevates your daily meals.',
       price: 600,
-      imageUrl: '/uploads/kayri-with-onion.jpg',
+      imageUrl: '/uploads/keri-with-onion.jpg',
       category: 'Pickle',
       spiciness: 2
     },

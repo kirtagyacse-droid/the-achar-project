@@ -15,5 +15,5 @@ export async function POST(req: Request) {
     return response;
   }
 
-  return NextResponse.json({ success: false }, { status: 401 });
+  return NextResponse.json({ success: false, error: 'Incorrect password' }, { status: 401 });
 }

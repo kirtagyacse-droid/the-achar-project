@@ -3,11 +3,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export interface CartItem {
   id: string;
+  productId?: string;
   name: string;
   price: number;
   quantity: number;
   imageUrl?: string;
+  sizeLabel?: string;
 }
+
 
 interface CartContextType {
   cart: CartItem[];

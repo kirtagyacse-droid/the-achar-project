@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
-import ProductCard from '@/components/ProductCard';
+import ProductsGridClient from '@/components/ProductsGridClient';
 import Link from 'next/link';
+import { ensureStarterTrio } from '@/lib/starterTrio';
 
 export const revalidate = 0;
 
@@ -12,6 +13,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
   const categoryFilter = resolvedSearchParams.category as string | undefined;
 
+  await ensureStarterTrio();
   let products = await prisma.product.findMany();
 
   if (categoryFilter) {
@@ -19,7 +21,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     products = products.filter(product => {
       const name = product.name.toLowerCase();
       if (filter === 'mango') {
-        return name.includes('kayri') || name.includes('mango');
+        return name.includes('keri') || name.includes('mango');
       } else if (filter === 'chili') {
         return name.includes('mirch') || name.includes('chili');
       } else if (filter === 'lemon') {
@@ -35,7 +37,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const getCategoryTitle = () => {
     if (!categoryFilter) return 'Our Pickles Menu';
     switch (categoryFilter.toLowerCase()) {
-      case 'mango': return 'Mango Pickles (Kayri)';
+      case 'mango': return 'Mango Pickles (Keri)';
       case 'chili': return 'Green Chili Pickles';
       case 'lemon': return 'Lemon Pickles (Nimbu)';
       case 'delicacies': return 'Traditional Delicacies (Lehsua)';
@@ -63,11 +65,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <div className="products-grid">
-            {products.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductsGridClient initialProducts={JSON.parse(JSON.stringify(products))} />
         )}
       </div>
     </div>

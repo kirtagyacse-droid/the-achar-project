@@ -27,6 +27,18 @@ export default function Footer() {
             </ul>
           </div>
           
+          <div className="footer-links-section">
+            <h4 className="footer-heading-lux">Community</h4>
+            <ul className="footer-links-list">
+              <li><a href="/diary">Aunty's Diary</a></li>
+              <li><a href="/quiz">Find Your Pickle</a></li>
+              <li><a href="/subscribe">Achar Club</a></li>
+              <li><a href="/passport">Pickle Passport</a></li>
+              <li><a href="/jar-return">Return Empty Jars</a></li>
+              <li><a href="/gift-builder">Build a Gift Box</a></li>
+            </ul>
+          </div>
+          
           <div className="footer-contact-section">
             <h4 className="footer-heading-lux">Contact</h4>
             <p className="footer-contact-item">C-Scheme, Jaipur, Rajasthan 302001</p>

@@ -9,7 +9,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const token = cookieStore.get('admin_token')?.value;
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const data = await req.json();
@@ -30,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Failed to update product' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Failed to update product' }, { status: 500 });
   }
 }
 
@@ -41,7 +41,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const token = cookieStore.get('admin_token')?.value;
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     await prisma.product.delete({
@@ -50,6 +50,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Failed to delete product' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Failed to delete product' }, { status: 500 });
   }
 }

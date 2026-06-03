@@ -12,7 +12,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const token = cookieStore.get('admin_token')?.value;
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const updatedOrder = await prisma.order.update({
@@ -22,6 +22,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 });
   }
 }

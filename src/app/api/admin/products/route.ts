@@ -8,13 +8,13 @@ export async function POST(req: Request) {
     const token = cookieStore.get('admin_token')?.value;
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { name, description, price, imageUrl, category, stockStatus, stockCount } = await req.json();
 
     if (!name || !description || price === undefined) {
-      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
     const product = await prisma.product.create({
@@ -31,6 +31,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, product });
   } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Failed to create product' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Failed to create product' }, { status: 500 });
   }
 }

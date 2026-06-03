@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
 
 :root {
   /* Minimalist Premium Theme (Light Mode only - elegant/feminine touch) */
@@ -22,9 +22,15 @@
   
   --font-sans: 'Outfit', sans-serif;
   --font-serif: 'Playfair Display', serif;
+  --font-handwriting: 'Caveat', cursive;
   
   --max-width: 1200px;
 }
+
+.font-handwriting {
+  font-family: var(--font-handwriting), 'Caveat', cursive !important;
+}
+
 
 * {
   box-sizing: border-box;
@@ -281,9 +287,14 @@ button {
 }
 
 .hero-title span {
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--font-handwriting), 'Caveat', cursive;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 3.8rem;
+  display: inline-block;
+  margin-top: 5px;
 }
+
 
 .hero-subtitle {
   font-size: 1.1rem;
@@ -1979,6 +1990,433 @@ button {
 .btn-toggle-visibility:hover {
   opacity: 1;
 }
+
+.auntys-note {
+  font-family: var(--font-handwriting), 'Caveat', cursive !important;
+  font-style: normal;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
+  padding: 8px 16px;
+  margin: 20px 0;
+  background-color: var(--color-accent-light);
+}
+
+/* Gifting Mode Banner & Toggles */
+.gifting-mode-banner {
+  background: linear-gradient(90deg, #7B1C1C 0%, #D4AF37 50%, #7B1C1C 100%);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  animation: slideDownBanner 0.3s ease;
+  z-index: 99;
+}
+
+@keyframes slideDownBanner {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.nav-gifting-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 14px;
+  border: 1px solid var(--border-medium);
+  background: transparent;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.nav-gifting-btn:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--text-main);
+}
+
+.nav-gifting-btn.active {
+  background-color: #7B1C1C; /* deep maroon */
+  color: white;
+  border-color: #7B1C1C;
+}
+
+.gifting-controls-box {
+  background: rgba(212, 175, 55, 0.05); /* golden hint */
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 16px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gifting-title-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #7B1C1C;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   Batch Edition Badges
+   ========================================================================== */
+.batch-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+  border: 1px solid rgba(154, 44, 44, 0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  width: fit-content;
+}
+
+.batch-badge-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: var(--text-main);
+  color: var(--bg-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 2px;
+  z-index: 5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Tasting Notes Collapsible Panel
+   ========================================================================== */
+.tasting-notes-disclosure {
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-secondary);
+  margin-bottom: 24px;
+  border-radius: 0;
+}
+
+.tasting-notes-trigger {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tasting-notes-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.tasting-notes-content {
+  padding: 0 20px 20px;
+  animation: slideDownFade 0.25s ease;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tasting-notes-quote {
+  font-family: var(--font-handwriting), 'Caveat', cursive !important;
+  font-size: 1.45rem;
+  line-height: 1.4;
+  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
+  padding-left: 16px;
+  margin: 10px 0 8px;
+}
+
+.tasting-notes-attribution {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  display: block;
+  text-align: right;
+}
+
+/* ==========================================================================
+   Sun-Process Gallery
+   ========================================================================== */
+.process-gallery-section {
+  padding: 80px 0;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.process-gallery-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 10px 0 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.process-gallery-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.process-gallery-container::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+.process-gallery-container::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+
+.process-gallery-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.process-card-slide {
+  flex: 0 0 260px;
+  height: 220px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.process-card-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.process-card-slide:hover img {
+  transform: scale(1.04);
+}
+
+.process-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 70%, transparent 100%);
+  padding: 24px 16px 16px;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.process-card-caption {
+  font-family: var(--font-handwriting), 'Caveat', cursive !important;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   Provenance Map Section
+   ========================================================================== */
+.provenance-map-section {
+  padding: 80px 0;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.provenance-map-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.provenance-map-visual {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rajasthan-outline-svg {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+}
+
+.pulsing-point {
+  fill: #7B1C1C;
+}
+
+.pulsing-point-ring {
+  fill: none;
+  stroke: #7B1C1C;
+  stroke-width: 1.5;
+  animation: mapPulse 2s infinite ease-out;
+  transform-origin: center;
+}
+
+@keyframes mapPulse {
+  0% { r: 4px; stroke-opacity: 1; }
+  100% { r: 16px; stroke-opacity: 0; }
+}
+
+.map-label-bg {
+  fill: rgba(255, 255, 255, 0.95);
+  stroke: var(--border-medium);
+  stroke-width: 1;
+}
+
+.map-label-text {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--text-main);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Pickle Finder Quiz Page
+   ========================================================================== */
+.quiz-page-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.quiz-progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background-color: var(--bg-tertiary);
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-progress-bar-fill {
+  height: 100%;
+  background-color: #7B1C1C;
+  transition: width 0.3s ease-in-out;
+}
+
+.quiz-step-title {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.quiz-step-subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.quiz-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.quiz-option-pill {
+  width: 100%;
+  padding: 18px 24px;
+  border: 1px solid var(--border-medium);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.quiz-option-pill:hover {
+  border-color: #7B1C1C;
+  background-color: var(--color-accent-light);
+  transform: translateX(4px);
+}
+
+.quiz-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quiz-back-btn {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+}
+
+.quiz-back-btn:hover {
+  color: var(--text-main);
+}
+
+.quiz-result-heading {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.quiz-result-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .provenance-map-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+
+
 
 
 

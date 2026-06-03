@@ -1,6 +1,7 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart, CartItem } from '@/context/CartContext';
+import JarSizeSelector from './JarSizeSelector';
 import Link from 'next/link';
 
 interface Product {
@@ -11,18 +12,35 @@ interface Product {
   imageUrl: string | null;
   stockStatus: string;
   spiciness?: number;
+  sizes?: any;
+  batchNumber?: string | null;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
 
+  // Parse sizes array
+  const parsedSizes = Array.isArray(product.sizes)
+    ? product.sizes
+    : typeof product.sizes === 'string'
+    ? JSON.parse(product.sizes)
+    : [];
+  
+  const hasSizes = parsedSizes.length > 0;
+  
+  const [selectedSize, setSelectedSize] = useState(hasSizes ? parsedSizes[0].label : '');
+  const [selectedPrice, setSelectedPrice] = useState(hasSizes ? parsedSizes[0].price : product.price);
+
   const handleAddToCart = () => {
+    const cartItemId = selectedSize ? `${product.id}-${selectedSize}` : product.id;
     const item: CartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
+      id: cartItemId,
+      productId: product.id,
+      name: selectedSize ? `${product.name} (${selectedSize})` : product.name,
+      price: selectedPrice,
       quantity: 1,
       imageUrl: product.imageUrl || '',
+      sizeLabel: selectedSize || undefined
     };
     addToCart(item);
   };
@@ -41,18 +59,45 @@ export default function ProductCard({ product }: { product: Product }) {
             {Array(product.spiciness).fill('🌶️').join('')}
           </div>
         )}
+        {product.batchNumber && (
+          <div className="batch-badge-card">
+            {product.batchNumber}
+          </div>
+        )}
+        {product.name === "Aunty's Starter Trio" && (
+          <div className="batch-badge-card" style={{ backgroundColor: 'var(--color-accent)', color: 'white', border: 'none', top: '12px', left: '12px' }}>
+            Starter Pack
+          </div>
+        )}
       </div>
+
 
       <div className="product-overlay">
         <h3 className="product-title-lux">{product.name}</h3>
         <p className="product-desc-lux">{product.description}</p>
         
         <div className="product-meta-row">
-          <span className="product-price-lux">₹{product.price}</span>
+          <span className="product-price-lux">₹{selectedPrice}</span>
           <span className={`product-badge-lux ${product.stockStatus === 'IN_STOCK' ? 'product-badge-in' : 'product-badge-out'}`}>
             {product.stockStatus === 'IN_STOCK' ? 'In Stock' : 'Out of Stock'}
           </span>
         </div>
+
+        {hasSizes && (
+          <div 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+            style={{ position: 'relative', zIndex: 10 }}
+          >
+            <JarSizeSelector
+              sizes={parsedSizes}
+              selectedSize={selectedSize}
+              onSizeSelect={(size) => {
+                setSelectedSize(size.label);
+                setSelectedPrice(size.price);
+              }}
+            />
+          </div>
+        )}
         
         <div className="product-action-wrap">
           <button 
@@ -71,4 +116,5 @@ export default function ProductCard({ product }: { product: Product }) {
     </div>
   );
 }
+
 

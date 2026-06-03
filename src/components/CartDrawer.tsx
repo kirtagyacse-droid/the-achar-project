@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
+import { useGiftingMode } from '@/context/GiftingModeContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function CartDrawer() {
   const { cart, isCartOpen, setCartOpen, removeFromCart, updateQuantity, totalPrice } = useCart();
+  const { isGiftingMode, giftMessage, setGiftMessage, giftPackaging, setGiftPackaging } = useGiftingMode();
   const drawerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -105,9 +107,55 @@ export default function CartDrawer() {
         {/* Drawer Footer */}
         {cart.length > 0 && (
           <div className="cart-drawer-footer">
+            {/* Gifting Controls in Cart Drawer */}
+            {isGiftingMode && (
+              <div className="gifting-controls-box">
+                <div className="gifting-title-badge">
+                  <span>🎁 Premium Gifting Options</span>
+                </div>
+                
+                <div className="form-group" style={{ marginBottom: '10px' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px', display: 'block' }}>Gift Packaging:</label>
+                  <select 
+                    value={giftPackaging}
+                    onChange={(e) => setGiftPackaging(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                  >
+                    <option value="none">No Special Packaging (Standard Box)</option>
+                    <option value="cloth-wrap">Cloth Wrap (Traditional Rajasthani Potli)</option>
+                    <option value="wooden-crate">Wooden Crate (Artisanal Gift Box)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '0' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px', display: 'block' }}>Gift Message (Optional):</label>
+                  <textarea 
+                    value={giftMessage}
+                    onChange={(e) => setGiftMessage(e.target.value)}
+                    placeholder="Enter a lovely message for the recipient..."
+                    rows={2}
+                    className="form-control"
+                    style={{ padding: '8px 12px', fontSize: '0.85rem', resize: 'none' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {isGiftingMode && giftPackaging === 'wooden-crate' && (
+              <div className="drawer-summary-row" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <span>Premium Wooden Crate Packaging:</span>
+                <span>₹150</span>
+              </div>
+            )}
             <div className="drawer-summary-row">
-              <span>Subtotal:</span>
-              <strong className="subtotal-val">₹{totalPrice}</strong>
+              <span>Total:</span>
+              <strong className="subtotal-val">₹{totalPrice + (isGiftingMode && giftPackaging === 'wooden-crate' ? 150 : 0)}</strong>
+            </div>
+            <div style={{ textAlign: 'center', margin: '10px 0' }}>
+              <Link href="/jar-return" onClick={() => setCartOpen(false)} style={{ fontSize: '0.85rem', color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                ♻️ Return empty jars for 10% off
+              </Link>
             </div>
             <p className="drawer-shipping-note">Free Pan-India Shipping & Cash on Delivery (COD) applied</p>
             <button 
@@ -134,3 +182,4 @@ export default function CartDrawer() {
     </div>
   );
 }
+
