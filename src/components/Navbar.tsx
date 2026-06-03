@@ -5,10 +5,20 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
-  const { totalItems } = useCart();
+  const { totalItems, setCartOpen } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [logoClicks, setLogoClicks] = useState(0);
+  const [shouldAnimateBadge, setShouldAnimateBadge] = useState(false);
+
+  // Animate the cart badge when items count changes
+  useEffect(() => {
+    if (totalItems > 0) {
+      setShouldAnimateBadge(true);
+      const timer = setTimeout(() => setShouldAnimateBadge(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [totalItems]);
 
   // Hidden keystroke redirect: Ctrl + Shift + A (or Cmd + Shift + A)
   useEffect(() => {
@@ -66,9 +76,20 @@ export default function Navbar() {
           
           <div className="navbar-right">
             {/* Admin link is now hidden! Accessible via Ctrl+Shift+A or clicking "JAIPUR" 5 times */}
-            <Link href="/cart" className="nav-cart-btn">
+            <Link 
+              href="/cart" 
+              className="nav-cart-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                setCartOpen(true);
+              }}
+            >
               <span className="cart-text">Cart</span>
-              {totalItems > 0 && <span className="cart-count-badge">{totalItems}</span>}
+              {totalItems > 0 && (
+                <span className={`cart-count-badge ${shouldAnimateBadge ? 'badge-bounce' : ''}`}>
+                  {totalItems}
+                </span>
+              )}
             </Link>
           </div>
         </nav>

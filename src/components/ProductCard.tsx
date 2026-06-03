@@ -10,6 +10,7 @@ interface Product {
   price: number;
   imageUrl: string | null;
   stockStatus: string;
+  spiciness?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -24,7 +25,6 @@ export default function ProductCard({ product }: { product: Product }) {
       imageUrl: product.imageUrl || '',
     };
     addToCart(item);
-    alert(`${product.name} added to cart!`);
   };
 
   return (
@@ -36,6 +36,11 @@ export default function ProductCard({ product }: { product: Product }) {
           className="product-image" 
           style={{ backgroundImage: `url(${product.imageUrl || '/placeholder.png'})` }}
         />
+        {product.spiciness !== undefined && product.spiciness > 0 && (
+          <div className="product-spice-badge" title={`Spiciness: ${product.spiciness}/3`}>
+            {Array(product.spiciness).fill('🌶️').join('')}
+          </div>
+        )}
       </div>
 
       <div className="product-overlay">

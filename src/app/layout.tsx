@@ -3,6 +3,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CartDrawer from "@/components/CartDrawer";
 
 export const metadata: Metadata = {
   title: "The Achar Project",
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body>
         <CartProvider>
           <Navbar />
+          <CartDrawer />
           <main style={{ minHeight: 'calc(100vh - 300px)' }}>
             {children}
           </main>

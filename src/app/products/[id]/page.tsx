@@ -25,6 +25,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       imageUrl: product.imageUrl,
       stockStatus: product.stockStatus,
       category: product.category,
+      spiciness: product.spiciness,
     }} />
   );
 }

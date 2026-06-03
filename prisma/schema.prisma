@@ -15,6 +15,7 @@ model Product {
   imageUrl    String?
   stockStatus String      @default("IN_STOCK") // IN_STOCK, OUT_OF_STOCK
   stockCount  Int         @default(10)
+  spiciness   Int         @default(2) // 0: Sweet, 1: Mild, 2: Medium, 3: Hot/Spicy
   category    String      @default("Pickle")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

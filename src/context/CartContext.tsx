@@ -17,12 +17,15 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  isCartOpen: boolean;
+  setCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("achar_cart");
@@ -49,6 +52,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item];
     });
+    setCartOpen(true); // Open the drawer immediately on addition
   };
 
   const removeFromCart = (id: string) => {
@@ -68,7 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
+      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, isCartOpen, setCartOpen }}
     >
       {children}
     </CartContext.Provider>

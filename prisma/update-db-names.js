@@ -4,36 +4,58 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting database spelling correction...');
 
-  // 1. Teekha Hari Mirch -> Teekhi Hari Mirch
+  // 1. Teekhi Hari Mirch -> spiciness = 3
   const r1 = await prisma.product.updateMany({
-    where: { name: 'Teekha Hari Mirch' },
-    data: { name: 'Teekhi Hari Mirch' }
+    where: { name: 'Teekhi Hari Mirch' },
+    data: { spiciness: 3 }
   });
-  console.log(`Updated Teekha Hari Mirch: ${r1.count} row(s)`);
+  console.log(`Updated Teekhi Hari Mirch spiciness: ${r1.count} row(s)`);
 
-  // 2. Kayri with Kabli Chana -> Kayri with Kabuli Chana
+  // 2. Kayri with Kabuli Chana -> spiciness = 2
   const r2 = await prisma.product.updateMany({
-    where: { name: 'Kayri with Kabli Chana' },
-    data: { name: 'Kayri with Kabuli Chana' }
+    where: { name: 'Kayri with Kabuli Chana' },
+    data: { spiciness: 2 }
   });
-  console.log(`Updated Kayri with Kabli Chana: ${r2.count} row(s)`);
+  console.log(`Updated Kayri with Kabuli Chana spiciness: ${r2.count} row(s)`);
 
-  // 3. Kayri with Deshi Chana -> Kayri with Desi Chana
+  // 3. Kayri with Desi Chana -> spiciness = 2
   const r3 = await prisma.product.updateMany({
-    where: { name: 'Kayri with Deshi Chana' },
-    data: { name: 'Kayri with Desi Chana' }
+    where: { name: 'Kayri with Desi Chana' },
+    data: { spiciness: 2 }
   });
-  console.log(`Updated Kayri with Deshi Chana: ${r3.count} row(s)`);
+  console.log(`Updated Kayri with Desi Chana spiciness: ${r3.count} row(s)`);
 
-  // 4. Lasuwa -> Lehsua
+  // 4. Lehsua -> spiciness = 1
   const r4 = await prisma.product.updateMany({
-    where: { name: 'Lasuwa' },
-    data: { 
-      name: 'Lehsua',
-      description: 'Authentic Rajasthani Lehsua (Gunda) pickle. A rare delicacy with incredible flavor.'
-    }
+    where: { name: 'Lehsua' },
+    data: { spiciness: 1 }
   });
-  console.log(`Updated Lasuwa: ${r4.count} row(s)`);
+  console.log(`Updated Lehsua spiciness: ${r4.count} row(s)`);
+
+  // 5. Kayri ka Khatta -> spiciness = 2
+  const r5 = await prisma.product.updateMany({
+    where: { name: 'Kayri ka Khatta' },
+    data: { spiciness: 2 }
+  });
+
+  // 6. Kayri ka Meetha -> spiciness = 0
+  const r6 = await prisma.product.updateMany({
+    where: { name: 'Kayri ka Meetha' },
+    data: { spiciness: 0 }
+  });
+
+  // 7. Kayri with Onion -> spiciness = 2
+  const r7 = await prisma.product.updateMany({
+    where: { name: 'Kayri with Onion' },
+    data: { spiciness: 2 }
+  });
+
+  // 8. Nimbu Khatta Meetha -> spiciness = 1
+  const r8 = await prisma.product.updateMany({
+    where: { name: 'Nimbu Khatta Meetha' },
+    data: { spiciness: 1 }
+  });
+
 
   console.log('Spelling correction completed successfully.');
 }

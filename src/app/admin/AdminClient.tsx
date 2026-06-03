@@ -53,6 +53,9 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
 
+  // Customer phone numbers visibility map (private by default)
+  const [visiblePhones, setVisiblePhones] = useState<Record<string, boolean>>({});
+
   // Add Product Form State
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProduct, setNewProduct] = useState({
@@ -79,6 +82,232 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
     { label: 'Mango with Desi Chana', value: '/uploads/kayri-with-deshi-chana.jpg' },
     { label: 'Mango with Kabuli Chana', value: '/uploads/kayri-with-kabli-chana.jpg' }
   ];
+
+  // Helper functions for masking phone numbers
+  const togglePhoneVisibility = (id: string) => {
+    setVisiblePhones(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const getDisplayPhone = (id: string, phone: string) => {
+    if (visiblePhones[id]) return phone;
+    if (phone.length <= 5) return '*****';
+    return phone.slice(0, 5) + '*****';
+  };
+
+  // Helper function to print shipping address label
+  const handlePrintLabel = (order: Order) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Popup blocker prevented opening the label. Please allow popups for this site.');
+      return;
+    }
+    
+    const itemsListHTML = order.items.map(item => `
+      <li>
+        <span style="font-weight: 600;">${item.product?.name || 'Deleted Product'}</span> 
+        - Qty: ${item.quantity} (₹${item.price} each)
+      </li>
+    `).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Shipping Label - Order #${order.id.substring(0, 8).toUpperCase()}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Playfair+Display:wght@700&display=swap');
+            body {
+              font-family: 'Outfit', sans-serif;
+              margin: 0;
+              padding: 40px;
+              color: #000;
+              background-color: #fff;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .label-box {
+              border: 3px dashed #000;
+              padding: 30px;
+              max-width: 550px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #000;
+              padding-bottom: 15px;
+              margin-bottom: 20px;
+            }
+            .logo {
+              font-family: 'Playfair Display', serif;
+              font-size: 28px;
+              font-weight: bold;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+            }
+            .label-type {
+              font-size: 12px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              margin-top: 5px;
+              font-weight: 600;
+              color: #555;
+            }
+            .cod-banner {
+              background-color: #000;
+              color: #fff;
+              padding: 12px;
+              text-align: center;
+              font-size: 24px;
+              font-weight: 800;
+              margin-bottom: 25px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            .address-section {
+              font-size: 16px;
+              line-height: 1.6;
+              margin-bottom: 25px;
+            }
+            .section-title {
+              font-weight: 800;
+              font-size: 13px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              color: #333;
+              margin-bottom: 8px;
+              display: block;
+            }
+            .customer-name {
+              font-size: 20px;
+              font-weight: 600;
+              margin-bottom: 8px;
+              display: block;
+            }
+            .items-section {
+              border-top: 1px solid #ccc;
+              border-bottom: 1px solid #ccc;
+              padding: 15px 0;
+              margin-bottom: 25px;
+            }
+            .items-list {
+              margin: 0;
+              padding-left: 20px;
+              font-size: 14px;
+            }
+            .items-list li {
+              margin-bottom: 6px;
+            }
+            .notes-box {
+              font-style: italic;
+              background-color: #f9f9f9;
+              border-left: 3px solid #666;
+              padding: 10px 15px;
+              font-size: 14px;
+              margin-bottom: 25px;
+            }
+            .footer {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #444;
+              border-top: 1px solid #000;
+              padding-top: 15px;
+            }
+            .sender-info {
+              line-height: 1.4;
+            }
+            .barcode {
+              text-align: center;
+              margin-top: 30px;
+              font-family: monospace;
+              font-size: 12px;
+              letter-spacing: 4px;
+            }
+            @media print {
+              body {
+                padding: 0;
+              }
+              .label-box {
+                border: 3px dashed #000;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="label-box">
+            <div class="header">
+              <div class="logo">The Achar Project</div>
+              <div class="label-type">Cash On Delivery (COD) Address Label</div>
+            </div>
+            
+            <div class="cod-banner">
+              Collect COD: ₹${order.totalAmount}
+            </div>
+            
+            <div class="address-section">
+              <span class="section-title">DELIVER TO:</span>
+              <span class="customer-name">${order.customerName}</span>
+              ${order.address}<br/>
+              ${order.landmark ? `Landmark: ${order.landmark}<br/>` : ''}
+              <span style="font-weight: 600; font-size: 18px;">${order.city}, ${order.state} - ${order.pincode}</span><br/>
+              <strong>Phone:</strong> ${order.phone} ${order.altPhone ? ` / ${order.altPhone}` : ''}
+            </div>
+            
+            <div class="items-section">
+              <span class="section-title">ORDER CONTENTS:</span>
+              <ul class="items-list">
+                ${itemsListHTML}
+              </ul>
+            </div>
+            
+            ${order.notes ? `
+              <div class="notes-box">
+                <strong>Delivery Note:</strong> "${order.notes}"
+              </div>
+            ` : ''}
+            
+            <div class="footer">
+              <div class="sender-info">
+                <strong>RETURN ADDRESS / SENDER:</strong><br/>
+                The Achar Project Store<br/>
+                C-Scheme, Jaipur, Rajasthan - 302001<br/>
+                Contact: +91 98765 43210
+              </div>
+              <div style="text-align: right; line-height: 1.4;">
+                <strong>Order ID:</strong> #${order.id.substring(0, 8).toUpperCase()}<br/>
+                <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}<br/>
+                Standard COD Shipping
+              </div>
+            </div>
+            
+            <div class="barcode">
+              ||||| | |||| ||| | ||| || |||| | ||||| | ||<br/>
+              *${order.id.toUpperCase()}*
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              }
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Stats Calculations
+  const todayStr = new Date().toDateString();
+  const ordersToday = orders.filter(o => new Date(o.createdAt).toDateString() === todayStr);
+  const jarsSoldToday = ordersToday.reduce((sum, o) => {
+    return sum + o.items.reduce((s, item) => s + item.quantity, 0);
+  }, 0);
+  
+  const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const lowStockProducts = products.filter(p => p.stockCount < 3 || p.stockStatus === 'OUT_OF_STOCK');
 
   // Handler to toggle product stock status
   const handleToggleStockStatus = async (product: Product) => {
@@ -204,6 +433,47 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
 
   return (
     <div className="admin-dashboard-client">
+      
+      {/* Sales Summary Metrics Banner */}
+      <div className="admin-stats-banner">
+        <div className="admin-stat-card">
+          <div>
+            <span className="stat-label-lux">Daily Jars Sold</span>
+            <div className="stat-val-lux">{jarsSoldToday} Jars</div>
+          </div>
+          <span className="stat-subtext-lux">Orders placed today ({ordersToday.length} orders)</span>
+        </div>
+        
+        <div className="admin-stat-card">
+          <div>
+            <span className="stat-label-lux">Total Revenue (COD)</span>
+            <div className="stat-val-lux">₹{totalRevenue}</div>
+          </div>
+          <span className="stat-subtext-lux">Total gross checkout value of all orders</span>
+        </div>
+        
+        <div className={`admin-stat-card ${lowStockProducts.length > 0 ? 'alert-card' : ''}`}>
+          <div>
+            <span className="stat-label-lux">Low Stock Alerts</span>
+            <div className="stat-val-lux">{lowStockProducts.length} Items</div>
+          </div>
+          {lowStockProducts.length > 0 ? (
+            <ul className="stat-alert-list">
+              {lowStockProducts.map(p => (
+                <li key={p.id}>
+                  <span>{p.name}</span>
+                  <strong>({p.stockStatus === 'OUT_OF_STOCK' ? 'Out of Stock' : `${p.stockCount} left`})</strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span className="stat-subtext-lux" style={{ color: 'var(--color-success)', fontWeight: '600' }}>
+              🟢 All pickles are well-stocked!
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Tab Navigation */}
       <div className="admin-tabs">
         <button 
@@ -245,7 +515,35 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
                     <div className="order-info-block">
                       <h4 className="info-block-title">Customer Details</h4>
                       <p><strong>Name:</strong> {order.customerName}</p>
-                      <p><strong>Phone:</strong> {order.phone} {order.altPhone && `(Alt: ${order.altPhone})`}</p>
+                      
+                      <p>
+                        <strong>Phone:</strong> {getDisplayPhone(order.id, order.phone)}
+                        <button 
+                          type="button"
+                          className="btn-toggle-visibility"
+                          onClick={() => togglePhoneVisibility(order.id)}
+                          title={visiblePhones[order.id] ? "Hide phone number" : "Show phone number"}
+                        >
+                          {visiblePhones[order.id] ? "👁️‍🗨️" : "👁️"}
+                        </button>
+                        
+                        {order.altPhone && (
+                          <>
+                            <span style={{ marginLeft: '12px' }}>
+                              <strong>Alt Phone:</strong> {getDisplayPhone(order.id + '_alt', order.altPhone)}
+                              <button 
+                                type="button"
+                                className="btn-toggle-visibility"
+                                onClick={() => togglePhoneVisibility(order.id + '_alt')}
+                                title={visiblePhones[order.id + '_alt'] ? "Hide alt phone number" : "Show alt phone number"}
+                              >
+                                {visiblePhones[order.id + '_alt'] ? "👁️‍🗨️" : "👁️"}
+                              </button>
+                            </span>
+                          </>
+                        )}
+                      </p>
+
                       <p>
                         <strong>Address:</strong><br />
                         {order.address}<br />
@@ -273,9 +571,19 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
                     </div>
                   </div>
 
-                  <div className="order-card-actions">
-                    <span className="status-label">Delivery Status:</span>
-                    <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+                  <div className="order-card-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <span className="status-label">Delivery Status:</span>
+                      <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+                    </div>
+                    
+                    <button 
+                      type="button" 
+                      className="btn-print-label"
+                      onClick={() => handlePrintLabel(order)}
+                    >
+                      🖨️ Print Shipping Label
+                    </button>
                   </div>
                 </div>
               ))}
@@ -401,7 +709,6 @@ export default function AdminClient({ initialOrders, initialProducts }: AdminCli
           {/* Products List (Aunty-friendly edit grid) */}
           <div className="admin-products-list">
             {products.map(product => {
-              // Local inputs for modifying price & stock count on the fly
               return (
                 <ProductRow 
                   key={product.id} 

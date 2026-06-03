@@ -11,6 +11,7 @@ interface Product {
   imageUrl: string | null;
   stockStatus: string;
   category: string;
+  spiciness?: number;
 }
 
 export default function ProductDetailClient({ product }: { product: Product }) {
@@ -26,7 +27,6 @@ export default function ProductDetailClient({ product }: { product: Product }) {
       imageUrl: product.imageUrl || '',
     };
     addToCart(item);
-    alert(`${quantity}x ${product.name} added to cart!`);
   };
 
   return (
@@ -49,10 +49,20 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             <h1 className="product-detail-title">{product.name}</h1>
             <div className="product-detail-price">₹{product.price}</div>
             
-            <div className="product-detail-status">
-              Status: <span className={product.stockStatus === 'IN_STOCK' ? 'status-in' : 'status-out'}>
-                {product.stockStatus === 'IN_STOCK' ? 'In Stock' : 'Out of Stock'}
-              </span>
+            <div className="product-detail-status" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+              <div>
+                Status: <span className={product.stockStatus === 'IN_STOCK' ? 'status-in' : 'status-out'}>
+                  {product.stockStatus === 'IN_STOCK' ? 'In Stock' : 'Out of Stock'}
+                </span>
+              </div>
+              {product.spiciness !== undefined && product.spiciness > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>Spiciness:</span>
+                  <span title={`Spiciness: ${product.spiciness}/3`}>
+                    {Array(product.spiciness).fill('🌶️').join('')}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="product-detail-divider"></div>
@@ -69,19 +79,30 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
             
             {product.stockStatus === 'IN_STOCK' ? (
-              <div className="product-detail-purchase">
-                <div className="quantity-selector-wrap">
-                  <label>Quantity:</label>
-                  <div className="quantity-selector">
-                    <button onClick={() => setQuantity(prev => Math.max(1, prev - 1))}>-</button>
-                    <span>{quantity}</span>
-                    <button onClick={() => setQuantity(prev => prev + 1)}>+</button>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <div className="product-detail-purchase">
+                  <div className="quantity-selector-wrap">
+                    <label>Quantity:</label>
+                    <div className="quantity-selector">
+                      <button onClick={() => setQuantity(prev => Math.max(1, prev - 1))}>-</button>
+                      <span>{quantity}</span>
+                      <button onClick={() => setQuantity(prev => prev + 1)}>+</button>
+                    </div>
                   </div>
+                  
+                  <button className="product-detail-btn" onClick={handleAddToCart}>
+                    Add to Cart
+                  </button>
                 </div>
                 
-                <button className="product-detail-btn" onClick={handleAddToCart}>
-                  Add to Cart
-                </button>
+                <a 
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210'}?text=${encodeURIComponent(`Hi! I would like to order ${quantity} jar(s) of ${product.name} (₹${product.price} each) from The Achar Project. Please confirm delivery.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-whatsapp-order"
+                >
+                  💬 Order on WhatsApp
+                </a>
               </div>
             ) : (
               <div className="out-of-stock-msg">
