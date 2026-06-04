@@ -262,6 +262,36 @@ button {
   color: var(--color-accent);
 }
 
+.category-item--seasonal {
+  color: #C8860A;
+}
+.category-item--seasonal:hover {
+  color: #9A5E00;
+}
+.category-item--pantry {
+  color: #2E7D32;
+}
+.category-item--pantry:hover {
+  color: #1B5E20;
+}
+
+/* Seasonal & Pantry Section Headers */
+.seasonal-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: white;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.seasonal-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
 /* Home Page */
 .hero-section {
   padding: 80px 0 60px;

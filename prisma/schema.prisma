@@ -17,6 +17,7 @@ model Product {
   stockCount    Int         @default(10)
   spiciness     Int         @default(2) // 0: Sweet, 1: Mild, 2: Medium, 3: Hot/Spicy
   category      String      @default("Pickle")
+  season        String?     // null=always visible, "summer", "winter", "pantry"
   batchNumber   String?     // e.g. "Batch #042"
   batchDate     DateTime?   // when this batch was made
   tastingNotes  String?     // wine-style flavor description text

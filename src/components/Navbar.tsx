@@ -130,6 +130,12 @@ export default function Navbar() {
           <Link href="/products?category=delicacies" className="category-item">
             Delicacies (Lehsua)
           </Link>
+          <Link href="/products?category=seasonal" className="category-item category-item--seasonal">
+            🌸 Season's Special
+          </Link>
+          <Link href="/products?category=pantry" className="category-item category-item--pantry">
+            🌿 From Our Pantry
+          </Link>
           <Link href="/diary" className={`category-item ${pathname === '/diary' ? 'active' : ''}`} style={{ borderLeft: '1px solid var(--border-medium)', paddingLeft: '16px', marginLeft: '8px' }}>
             Aunty's Diary
           </Link>
