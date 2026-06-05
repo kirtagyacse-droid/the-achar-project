@@ -68,9 +68,13 @@ jobs:
           </plist>
           EOF
           
+          # Move to parent directory so TheAcharProject.app is at root level of zip
+          pushd build-temp
+          zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" TheAcharProject.app
+          popd
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TheAcharProject
-          path: build-temp/TheAcharProject.app
+          name: TheAcharProject-iOS
+          path: TheAcharProject.zip
