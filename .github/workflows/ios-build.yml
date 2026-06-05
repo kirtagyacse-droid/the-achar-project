@@ -68,8 +68,7 @@ jobs:
           </plist>
           EOF
           
-          # Zip the bundle for Appetize uploading
-          cd ..
+          # Zip the bundle for Appetize/Diawi uploading
           zip -r TheAcharProject-Simulator.zip build-temp/TheAcharProject.app
 
       - name: Upload Build Artifact
