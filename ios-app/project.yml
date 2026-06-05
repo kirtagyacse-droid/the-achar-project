@@ -14,8 +14,9 @@ targets:
       - path: .
         excludes:
           - project.yml
+          - "*.zip"
+    productName: TheAcharProject
     info:
-      path: Info.plist
       properties:
         CFBundleDisplayName: The Achar Project
         CFBundleIdentifier: com.example.theacharproject

@@ -30,7 +30,7 @@ jobs:
           xcodebuild -project TheAcharProject.xcodeproj \
             -scheme TheAcharProject \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -39,14 +39,14 @@ jobs:
 
       - name: Package Simulator App Bundle
         run: |
-          # The built .app is located in the derived data folder
-          APP_PATH=$(find ios-app/build/Build/Products/Debug-iphonesimulator -name "*.app" -maxdepth 1)
-          
-          # Move to the directory containing the .app to zip it properly
-          cd $(dirname "$APP_PATH")
+          APP_PATH=$(find ios-app/build/Build/Products/Debug-iphonesimulator -name "*.app" -maxdepth 1 | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: No .app found"
+            find ios-app/build -type d -name "*.app" || true
+            exit 1
+          fi
+          cd ios-app/build/Build/Products/Debug-iphonesimulator
           APP_NAME=$(basename "$APP_PATH")
-          
-          # Zip the .app directory
           zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" "$APP_NAME"
 
       - name: Upload Build Artifact
