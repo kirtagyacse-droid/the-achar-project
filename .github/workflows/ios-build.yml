@@ -68,8 +68,10 @@ jobs:
           </plist>
           EOF
           
-          # Zip the bundle for Appetize/Diawi uploading
-          zip -r TheAcharProject-Simulator.zip build-temp/TheAcharProject.app
+          # Zip the bundle for Appetize/Diawi uploading. We change directory to build-temp so that TheAcharProject.app is at the root level of the zip.
+          cd build-temp
+          zip -r ../TheAcharProject-Simulator.zip TheAcharProject.app
+          cd ..
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
