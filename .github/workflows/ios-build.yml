@@ -16,62 +16,38 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Temporary Xcode Project
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
         run: |
-          # We generate a quick light-weight project structure for compiler validation and simulator deployment
-          mkdir -p build-temp
-          cd build-temp
-          
-          # Use swift package manager to create an executable structure or generate temporary XcodeProj 
-          # Or create a swift file structure and compile it directly using xcodebuild command line
-          # This compiles our SwiftUI codebase files directly into an executable bundle.
-          
-          xcodebuild -workspace-empty -timeout 10 || true
-          
-      - name: Compile Swift Source Code Validation
+          cd ios-app
+          xcodegen generate
+
+      - name: Build iOS App for Simulator
         run: |
-          # Directly validate the syntax of all swift files to ensure Appetize or Xcode won't throw compile errors
-          xcrun -sdk iphonesimulator swiftc \
-            -target x86_64-apple-ios17.0-simulator \
-            -sdk $(xcrun --sdk iphonesimulator --show-sdk-path) \
-            ios-app/*.swift \
-            -o build-temp/TheAcharProjectSim
-            
+          cd ios-app
+          xcodebuild -project TheAcharProject.xcodeproj \
+            -scheme TheAcharProject \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
       - name: Package Simulator App Bundle
         run: |
-          mkdir -p build-temp/TheAcharProject.app
-          cp build-temp/TheAcharProjectSim build-temp/TheAcharProject.app/TheAcharProject
+          # The built .app is located in the derived data folder
+          APP_PATH=$(find ios-app/build/Build/Products/Debug-iphonesimulator -name "*.app" -maxdepth 1)
           
-          # Create a dummy Info.plist required for iOS simulation loading
-          cat <<EOF > build-temp/TheAcharProject.app/Info.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>TheAcharProject</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.example.theacharproject</string>
-              <key>CFBundleName</key>
-              <string>The Achar Project</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>CFBundleShortVersionString</key>
-              <string>1.0</string>
-              <key>CFBundleVersion</key>
-              <string>1</string>
-              <key>LSRequiresIPhoneOS</key>
-              <true/>
-              <key>UILaunchStoryboardName</key>
-              <string>LaunchScreen</string>
-          </dict>
-          </plist>
-          EOF
+          # Move to the directory containing the .app to zip it properly
+          cd $(dirname "$APP_PATH")
+          APP_NAME=$(basename "$APP_PATH")
           
-          # Move to parent directory so TheAcharProject.app is at root level of zip
-          pushd build-temp
-          zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" TheAcharProject.app
-          popd
+          # Zip the .app directory
+          zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" "$APP_NAME"
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
