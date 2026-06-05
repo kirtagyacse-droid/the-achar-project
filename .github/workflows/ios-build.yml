@@ -78,7 +78,7 @@ jobs:
           zip -r ../TheAcharProject-Simulator.zip TheAcharProject.app
 
       - name: Upload Build Artifact
-        uses: actions/actions-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
           name: ios-simulator-app
           path: TheAcharProject-Simulator.zip
