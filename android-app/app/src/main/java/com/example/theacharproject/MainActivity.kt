@@ -1274,13 +1274,12 @@ fun BrandStorySection(apiBaseUrl: String) {
 }
 
 // --- Menu Catalog Screen ---
-@Composable
 fun getCurrentAppSeason(): String? {
-    val month = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1 // 1-12
+    val month = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1
     return when {
         month in 3..6 -> "summer"
         month >= 10 || month <= 2 -> "winter"
-        else -> null // monsoon
+        else -> null
     }
 }
 
