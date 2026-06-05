@@ -14,7 +14,7 @@ jobs:
     
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Xcode version
         uses: maxim-lobanov/setup-xcode@v1
@@ -78,7 +78,7 @@ jobs:
           zip -r ../TheAcharProject-Simulator.zip TheAcharProject.app
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-simulator-app
           path: TheAcharProject-Simulator.zip
