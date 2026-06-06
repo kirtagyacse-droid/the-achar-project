@@ -6,7 +6,13 @@ targets:
   TheAcharProject:
     type: application
     platform: iOS
-    sources: ["."]
+    sources:
+      - path: "."
+        excludes:
+          - "Info.plist"
+          - "project.yml"
+    info:
+      path: Info.plist
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.example.theacharproject
       SWIFT_VERSION: 5.9
