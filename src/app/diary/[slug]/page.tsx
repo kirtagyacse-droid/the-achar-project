@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!post) {
     return {
-      title: 'Diary Entry | The Achar Project',
-      description: 'Homemade Rajasthani Achar, made with love in Jaipur.',
+      title: 'Diary Entry | RS Savoury',
+      description: 'Homemade Rajasthani pickles and delicacies, made with love in Jaipur.',
     };
   }
 
@@ -96,7 +96,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           With love, from Jaipur
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          THE ACHAR PROJECT
+          RS SAVOURY
         </p>
       </div>
     </article>

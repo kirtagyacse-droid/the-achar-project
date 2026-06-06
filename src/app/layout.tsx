@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 
 export const metadata: Metadata = {
-  title: "The Achar Project",
+  title: "RS Savoury",
   description: "Authentic, homemade Rajasthani pickles straight from Jaipur.",
 };
 

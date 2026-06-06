@@ -7,11 +7,11 @@ export const revalidate = 0;
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Aunty\'s Diary | The Achar Project',
-  description: 'Read stories, seasonal notes, and pickling milestones directly from Aunty in Jaipur. Homemade Rajasthani Achar, made with love in Jaipur.',
+  title: 'Aunty\'s Diary | RS Savoury',
+  description: 'Read stories, seasonal notes, and pickling milestones directly from Aunty in Jaipur. Homemade Rajasthani pickles and delicacies, made with love in Jaipur.',
   openGraph: {
-    title: 'Aunty\'s Diary | The Achar Project',
-    description: 'Read stories, seasonal notes, and pickling milestones directly from Aunty in Jaipur. Homemade Rajasthani Achar, made with love in Jaipur.',
+    title: 'Aunty\'s Diary | RS Savoury',
+    description: 'Read stories, seasonal notes, and pickling milestones directly from Aunty in Jaipur. Homemade Rajasthani pickles and delicacies, made with love in Jaipur.',
     images: [{ url: '/uploads/keri-ka-khatta.jpg' }],
   },
 };

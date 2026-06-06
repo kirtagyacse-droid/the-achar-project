@@ -9,7 +9,7 @@ class NetworkManager: ObservableObject {
     // Store API URL in UserDefaults for easy runtime changes (like developer mode in Android)
     var apiBaseUrl: String {
         get {
-            UserDefaults.standard.string(forKey: "target_url") ?? "https://the-achar-project.vercel.app"
+            UserDefaults.standard.string(forKey: "target_url") ?? "https://rssavoury.com"
         }
         set {
             UserDefaults.standard.set(newValue, forKey: "target_url")

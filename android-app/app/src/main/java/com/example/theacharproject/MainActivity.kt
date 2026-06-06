@@ -23,6 +23,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -49,6 +50,7 @@ import android.provider.OpenableColumns
 import com.example.theacharproject.theme.TheAcharProjectTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -164,6 +166,176 @@ fun parseProductsJson(jsonStr: String): List<Product> {
     }
 }
 
+@Composable
+fun SplashScreen(onTimeout: () -> Unit) {
+    var startAnimation by remember { mutableStateOf(false) }
+    
+    val alphaAnim by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 1200,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        )
+    )
+    
+    val scaleAnim by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.85f,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 1200,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        )
+    )
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+        delay(2800)
+        onTimeout()
+    }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFCF9F5)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Top Image Card (45% height)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.45f)
+                    .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                    .border(
+                        width = 2.dp,
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color(0xFFD4AF37))
+                        ),
+                        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+                    )
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.splash_achar),
+                    contentDescription = "Traditional Rajasthani Achar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.9f)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color(0x33000000), Color(0x667B1C1C)),
+                                startY = 0f
+                            )
+                        )
+                )
+            }
+            
+            // Bottom Information Panel (55% height)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.55f)
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Spacer(modifier = Modifier.height(56.dp))
+                
+                Text(
+                    text = "RS SAVOURY",
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 3.sp,
+                    fontSize = 32.sp,
+                    color = Color(0xFF9A2C2C),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(alphaAnim).scale(scaleAnim)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    text = "ARTISANAL GOURMET",
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 5.sp,
+                    fontSize = 11.sp,
+                    color = Color(0xFF888888),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(alphaAnim)
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text(
+                    text = "Jaipur's Sun-Matured Heritage",
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = Color(0xFF722020),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(alphaAnim)
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Generational recipes handcrafted in cold-pressed mustard oil",
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 11.sp,
+                    color = Color(0xFF999999),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.alpha(alphaAnim).padding(horizontal = 16.dp)
+                )
+            }
+        }
+        
+        // Circular Overlapping Logo (Centered boundary)
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-40).dp)
+                .alpha(alphaAnim)
+                .scale(scaleAnim)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "RS Savoury Jar Icon",
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(55.dp))
+                    .background(Color.White)
+                    .border(2.dp, Color(0xFFD4AF37), RoundedCornerShape(55.dp))
+                    .shadow(elevation = 10.dp, shape = RoundedCornerShape(55.dp), ambientColor = Color(0x33000000))
+                    .padding(8.dp)
+            )
+        }
+        
+        // Developer credits with system navigation safe zone padding
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 24.dp)
+                .alpha(alphaAnim)
+        ) {
+            Text(
+                text = "developed by KT",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                color = Color(0xFF888888),
+                letterSpacing = 1.sp
+            )
+        }
+    }
+}
+
 // --- Main Layout ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -173,8 +345,10 @@ fun NativeAppLayout() {
     val sharedPref = remember { context.getSharedPreferences("achar_pref", Context.MODE_PRIVATE) }
     
     var apiBaseUrl by remember { 
-        mutableStateOf(sharedPref.getString("target_url", "https://the-achar-project.vercel.app") ?: "https://the-achar-project.vercel.app") 
+        mutableStateOf(sharedPref.getString("target_url", "https://rssavoury.com") ?: "https://rssavoury.com") 
     }
+    
+    var showSplash by remember { mutableStateOf(true) }
     
     // Screens State
     var currentScreen by remember { mutableStateOf(Screen.Catalog) }
@@ -202,20 +376,32 @@ fun NativeAppLayout() {
     LaunchedEffect(Unit) {
         productsList = getProductsCache(context)
         // Fetch fresh online products
-        loadProductsFromApi(context, apiBaseUrl, { freshList ->
-            productsList = freshList
-            isOfflineMode = false
-        }, {
-            isOfflineMode = true
-            if (productsList.isEmpty()) {
-                // If cache empty, seed dummy products for complete offline usability
-                productsList = getDummyOfflineProducts()
+        loadProductsFromApi(
+            context = context,
+            apiBaseUrl = apiBaseUrl,
+            onUrlResolved = { resolvedUrl ->
+                apiBaseUrl = resolvedUrl
+                sharedPref.edit().putString("target_url", resolvedUrl).apply()
+            },
+            onSuccess = { freshList ->
+                productsList = freshList
+                isOfflineMode = false
+            },
+            onError = {
+                isOfflineMode = true
+                if (productsList.isEmpty()) {
+                    // If cache empty, seed dummy products for complete offline usability
+                    productsList = getDummyOfflineProducts()
+                }
             }
-        })
+        )
     }
 
-    Scaffold(
-        topBar = {
+    if (showSplash) {
+        SplashScreen(onTimeout = { showSplash = false })
+    } else {
+        Scaffold(
+            topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Column(
@@ -224,14 +410,14 @@ fun NativeAppLayout() {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.logo),
-                            contentDescription = "The Achar Project Logo",
+                            contentDescription = "RS Savoury Logo",
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(50))
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "THE ACHAR PROJECT",
+                            text = "RS SAVOURY",
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.ExtraBold,
                             letterSpacing = 1.sp,
@@ -449,12 +635,12 @@ fun NativeAppLayout() {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { inputUrl = "https://the-achar-project.vercel.app" },
+                        onClick = { inputUrl = "https://rssavoury.com" },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333), contentColor = Color.White),
                         shape = RoundedCornerShape(0.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Use production Vercel", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+                        Text("Use production Domain", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
                     }
                 }
             },
@@ -466,12 +652,17 @@ fun NativeAppLayout() {
                         showDevDialog = false
                         // Reload products
                         scope.launch {
-                            loadProductsFromApi(context, apiBaseUrl, { freshList ->
-                                productsList = freshList
-                                isOfflineMode = false
-                            }, {
-                                isOfflineMode = true
-                            })
+                            loadProductsFromApi(
+                                context = context,
+                                apiBaseUrl = apiBaseUrl,
+                                onSuccess = { freshList ->
+                                    productsList = freshList
+                                    isOfflineMode = false
+                                },
+                                onError = {
+                                    isOfflineMode = true
+                                }
+                            )
                         }
                     }
                 ) {
@@ -608,6 +799,7 @@ fun NativeAppLayout() {
                 Toast.makeText(context, "Order Placed Successfully!", Toast.LENGTH_LONG).show()
             }
         )
+        }
     }
 }
 
@@ -615,6 +807,7 @@ fun NativeAppLayout() {
 fun loadProductsFromApi(
     context: Context,
     apiBaseUrl: String,
+    onUrlResolved: (String) -> Unit = {},
     onSuccess: (List<Product>) -> Unit,
     onError: () -> Unit
 ) {
@@ -624,8 +817,8 @@ fun loadProductsFromApi(
                 val url = URL("$apiBaseUrl/api/products")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
+                connection.connectTimeout = 8000
+                connection.readTimeout = 8000
                 val code = connection.responseCode
                 if (code == 200) {
                     val reader = BufferedReader(InputStreamReader(connection.inputStream))
@@ -639,12 +832,46 @@ fun loadProductsFromApi(
                     saveProductsCache(context, responseStr)
                     parseProductsJson(responseStr)
                 } else {
-                    throw Exception("Non 200 code")
+                    throw Exception("Non 200 code: $code")
                 }
             }
+            onUrlResolved(apiBaseUrl)
             onSuccess(list)
         } catch (e: Exception) {
             e.printStackTrace()
+            // If the custom domain fails, try to fallback to the vercel domain
+            if (apiBaseUrl == "https://rssavoury.com") {
+                try {
+                    val fallbackUrlStr = "https://the-achar-project.vercel.app"
+                    val fallbackList = withContext(Dispatchers.IO) {
+                        val url = URL("$fallbackUrlStr/api/products")
+                        val connection = url.openConnection() as HttpURLConnection
+                        connection.requestMethod = "GET"
+                        connection.connectTimeout = 8000
+                        connection.readTimeout = 8000
+                        val code = connection.responseCode
+                        if (code == 200) {
+                            val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                            val sb = StringBuilder()
+                            var line: String?
+                            while (reader.readLine().also { line = it } != null) {
+                                sb.append(line)
+                            }
+                            reader.close()
+                            val responseStr = sb.toString()
+                            saveProductsCache(context, responseStr)
+                            parseProductsJson(responseStr)
+                        } else {
+                            throw Exception("Non 200 code: $code")
+                        }
+                    }
+                    onUrlResolved(fallbackUrlStr)
+                    onSuccess(fallbackList)
+                    return@launch
+                } catch (fallbackEx: Exception) {
+                    fallbackEx.printStackTrace()
+                }
+            }
             onError()
         }
     }

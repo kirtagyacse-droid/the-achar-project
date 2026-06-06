@@ -26,8 +26,8 @@ function CheckoutSuccessContent() {
     }
   }, [orderId]);
 
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://theacharproject.com';
-  const shareText = `Hey! I've been ordering the most amazing homemade Rajasthani Achar from The Achar Project in Jaipur. Use my code ${referralCode} for ₹100 off your first order: ${siteUrl}`;
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://rssavoury.com';
+  const shareText = `Hey! I've been ordering the most amazing homemade Rajasthani pickles and delicacies from RS Savoury in Jaipur. Use my code ${referralCode} for ₹100 off your first order: ${siteUrl}`;
   const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
   const copyToClipboard = () => {
@@ -43,7 +43,7 @@ function CheckoutSuccessContent() {
         Order Placed Successfully!
       </h1>
       <p style={{ fontSize: '1.2rem', marginBottom: '30px' }}>
-        Thank you for ordering from The Achar Project. We have received your order and will begin preparing it for dispatch soon!
+        Thank you for ordering from RS Savoury. We have received your order and will begin preparing it for dispatch soon!
       </p>
       
       {orderId && (

@@ -1,4 +1,4 @@
-# The Achar Project
+# RS Savoury
 
 This is an MVP e-commerce platform for a Jaipur-based homemade achar business. It features a modern, premium design, a customer shopping flow with Cash on Delivery (COD), and an admin dashboard to manage orders and products.
 

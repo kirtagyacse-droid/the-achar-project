@@ -12,7 +12,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-content-lux">
           <div className="footer-brand-section">
-            <h3 className="footer-logo-lux">THE ACHAR PROJECT</h3>
+            <h3 className="footer-logo-lux">RS SAVOURY</h3>
             <p className="footer-desc-lux">
               Bringing Jaipur's authentic, hand-ground, and sun-matured pickles straight to your dining table. Made with pure mustard oil and generational recipes.
             </p>
@@ -41,14 +41,14 @@ export default function Footer() {
           
           <div className="footer-contact-section">
             <h4 className="footer-heading-lux">Contact</h4>
-            <p className="footer-contact-item">C-Scheme, Jaipur, Rajasthan 302001</p>
-            <p className="footer-contact-item">Phone: +91 98290 12345 (Dummy)</p>
-            <p className="footer-contact-item">Email: hello@theacharproject.com</p>
+            <p className="footer-contact-item">110, Krishna Nagar, Teen Dukan, Dher Ke Balaji, Vidyadhar Nagar, Jaipur, Rajasthan 302039</p>
+            <p className="footer-contact-item">Phone: +91 63505 92597, +91 63778 78454</p>
+            <p className="footer-contact-item">Email: hello@rssavoury.com</p>
           </div>
         </div>
         
         <div className="footer-bottom-lux">
-          <p>&copy; {new Date().getFullYear()} The Achar Project. Handcrafted with love.</p>
+          <p>&copy; {new Date().getFullYear()} RS Savoury. Handcrafted with love.</p>
           <p className="footer-disclaimer">Artisanal e-commerce MVP concept.</p>
         </div>
       </div>

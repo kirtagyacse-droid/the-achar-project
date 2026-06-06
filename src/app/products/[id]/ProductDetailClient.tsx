@@ -210,7 +210,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
                 </div>
                 
                 <a 
-                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210'}?text=${encodeURIComponent(`Hi! I would like to order ${quantity} jar(s) of ${product.name}${selectedSize ? ` (${selectedSize})` : ''} (₹${selectedPrice} each) from The Achar Project. Please confirm delivery.`)}`}
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210'}?text=${encodeURIComponent(`Hi! I would like to order ${quantity} jar(s) of ${product.name}${selectedSize ? ` (${selectedSize})` : ''} (₹${selectedPrice} each) from RS Savoury. Please confirm delivery.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-whatsapp-order"

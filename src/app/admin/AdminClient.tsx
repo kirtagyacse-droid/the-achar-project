@@ -345,7 +345,7 @@ export default function AdminClient({
         <body>
           <div class="label-box">
             <div class="header">
-              <div class="logo">The Achar Project</div>
+              <div class="logo">RS Savoury</div>
               <div class="label-type">Cash On Delivery (COD) Address Label</div>
             </div>
             
@@ -385,9 +385,10 @@ export default function AdminClient({
             <div class="footer">
               <div class="sender-info">
                 <strong>RETURN ADDRESS / SENDER:</strong><br/>
-                The Achar Project Store<br/>
-                C-Scheme, Jaipur, Rajasthan - 302001<br/>
-                Contact: +91 98765 43210
+                RS Savoury Store<br/>
+                110, Krishna Nagar, Teen Dukan, Dher Ke Balaji,<br/>
+                Vidyadhar Nagar, Jaipur, Rajasthan - 302039<br/>
+                Contact: +91 63505 92597, +91 63778 78454
               </div>
               <div style="text-align: right; line-height: 1.4;">
                 <strong>Order ID:</strong> #${order.id.substring(0, 8).toUpperCase()}<br/>
@@ -800,7 +801,7 @@ export default function AdminClient({
         // Find order and trigger wa.me redirect
         const order = orders.find(o => o.id === orderId);
         if (order) {
-          const text = `Namaste ${order.customerName}! 🫙 Your Achar order has been packed and is on its way. — Aunty, The Achar Project`;
+           const text = `Namaste ${order.customerName}! 🫙 Your order has been packed and is on its way. — Aunty, RS Savoury`;
           const url = `https://wa.me/${order.phone}?text=${encodeURIComponent(text)}`;
           window.open(url, '_blank');
         }

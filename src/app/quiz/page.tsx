@@ -2,11 +2,11 @@ import { Metadata } from 'next';
 import QuizClient from './QuizClient';
 
 export const metadata: Metadata = {
-  title: 'Find Your Pickle | The Achar Project',
-  description: 'Take Aunty\'s interactive flavor quiz to find your perfect Rajasthani pickle match. Homemade Rajasthani Achar, made with love in Jaipur.',
+  title: 'Find Your Pickle | RS Savoury',
+  description: 'Take Aunty\'s interactive flavor quiz to find your perfect Rajasthani pickle match. Homemade Rajasthani pickles and delicacies, made with love in Jaipur.',
   openGraph: {
-    title: 'Find Your Pickle | The Achar Project',
-    description: 'Take Aunty\'s interactive flavor quiz to find your perfect Rajasthani pickle match. Homemade Rajasthani Achar, made with love in Jaipur.',
+    title: 'Find Your Pickle | RS Savoury',
+    description: 'Take Aunty\'s interactive flavor quiz to find your perfect Rajasthani pickle match. Homemade Rajasthani pickles and delicacies, made with love in Jaipur.',
     images: [{ url: '/uploads/keri-ka-khatta.jpg' }],
   },
 };

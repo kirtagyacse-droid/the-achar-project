@@ -71,14 +71,18 @@ export default function Navbar() {
             <Link href="/gift-builder" className="nav-link-item" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>🎁 Build a Gift Box</Link>
           </div>
           
-          <div className="navbar-logo">
-            <Link href="/">
-              <div className="logo-title">THE ACHAR PROJECT</div>
+          <div className="navbar-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img 
+                src="/images/logo.png" 
+                alt="RS Savoury Logo" 
+                style={{ height: '210px', width: 'auto', objectFit: 'contain' }} 
+              />
             </Link>
             <div 
               className="logo-subtitle" 
               onClick={handleSubtitleClick}
-              style={{ userSelect: 'none', cursor: 'default' }}
+              style={{ userSelect: 'none', cursor: 'default', marginTop: '2px' }}
             >
               JAIPUR
             </div>

@@ -27,7 +27,7 @@ struct MainLayoutView: View {
                             }
                         }
                     
-                    Text("THE ACHAR PROJECT")
+                    Text("RS SAVOURY")
                         .font(.system(.footnote, design: .serif))
                         .fontWeight(.black)
                         .kerning(1.5)
@@ -121,7 +121,7 @@ struct MainLayoutView: View {
                 title: Text("Developer Mode"),
                 message: Text("Change Backend target host context if needed."),
                 primaryButton: .default(Text("Reset"), action: {
-                    networkManager.apiBaseUrl = "https://the-achar-project.vercel.app"
+                    networkManager.apiBaseUrl = "https://rssavoury.com"
                 }),
                 secondaryButton: .cancel()
             )

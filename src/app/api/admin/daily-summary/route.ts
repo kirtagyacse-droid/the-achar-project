@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     // Format WhatsApp message
-    const message = `📦 Achar Project — Daily Report ${dateStr}
+    const message = `📦 RS Savoury — Daily Report ${dateStr}
 Orders today: ${totalOrders} (₹${totalCOD} total)
 Pending: ${pendingCount} | Dispatched: ${dispatchedCount} | Delivered: ${deliveredCount}
 ⚠️ Low stock: ${lowStockText}`;
