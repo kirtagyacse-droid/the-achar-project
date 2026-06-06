@@ -23,6 +23,8 @@ jobs:
         run: |
           cd ios-app
           xcodegen generate
+          ls -la TheAcharProject.xcodeproj || true
+          cat TheAcharProject.xcodeproj/project.pbxproj | head -50 || true
 
       - name: Build iOS App for Simulator
         run: |
@@ -35,7 +37,9 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            -verbose \
+            build 2>&1 | tee build.log || true
+          echo "Build exit code: $?"
 
       - name: Package Simulator App Bundle
         run: |
