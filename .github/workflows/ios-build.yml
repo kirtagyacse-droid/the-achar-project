@@ -22,11 +22,9 @@ jobs:
       - name: Generate Xcode Project
         run: |
           cd ios-app
-          xcodegen generate 2>&1 || true
-          echo "---Project.yml content---"
+          xcodegen generate
+          ls -la TheAcharProject.xcodeproj || true
           cat project.yml || true
-          echo "---FileList---"
-          ls -la *.swift || true
 
       - name: Build iOS App for Simulator
         run: |
@@ -34,21 +32,20 @@ jobs:
           xcodebuild -project TheAcharProject.xcodeproj \
             -scheme TheAcharProject \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -sdk iphonesimulator \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            -verbose \
-            build 2>&1 | tee build.log || true
-          echo "Build exit code: $?"
+            build
 
       - name: Package Simulator App Bundle
         run: |
           APP_PATH=$(find ios-app/build/Build/Products/Debug-iphonesimulator -name "*.app" -maxdepth 1 | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app found"
-            find ios-app/build -type d -name "*.app" || true
+            echo "Error: No .app found, checking structure..."
+            find ios-app/build -name "*.app" -type d || true
+            ls -la ios-app/build/Build/Products/ || true
             exit 1
           fi
           cd ios-app/build/Build/Products/Debug-iphonesimulator
