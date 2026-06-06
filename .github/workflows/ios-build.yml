@@ -23,8 +23,6 @@ jobs:
         run: |
           cd ios-app
           xcodegen generate
-          ls -la TheAcharProject.xcodeproj || true
-          cat project.yml || true
 
       - name: Build iOS App for Simulator
         run: |
@@ -48,8 +46,9 @@ jobs:
             ls -la ios-app/build/Build/Products/ || true
             exit 1
           fi
-          cd ios-app/build/Build/Products/Debug-iphonesimulator
           APP_NAME=$(basename "$APP_PATH")
+          # Zip the .app at root level for Appetize.io compatibility
+          cd ios-app/build/Build/Products/Debug-iphonesimulator
           zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" "$APP_NAME"
 
       - name: Upload Build Artifact
