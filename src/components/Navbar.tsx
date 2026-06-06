@@ -12,6 +12,26 @@ export default function Navbar() {
   const router = useRouter();
   const [logoClicks, setLogoClicks] = useState(0);
   const [shouldAnimateBadge, setShouldAnimateBadge] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
+
+  // Hide header on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPos = window.scrollY;
+      
+      if (currentScrollPos < 50) {
+        setVisible(true);
+      } else {
+        const isScrollingUp = prevScrollPos > currentScrollPos;
+        setVisible(isScrollingUp);
+      }
+      setPrevScrollPos(currentScrollPos);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prevScrollPos]);
 
   // Animate the cart badge when items count changes
   useEffect(() => {
@@ -50,7 +70,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="navbar-header">
+    <header className={`navbar-header ${!visible ? 'navbar-header--hidden' : ''}`}>
       {/* Top Announcement Bar */}
       <div className="navbar-top-banner">
         <span>ESTD. 2026 • ARTISANAL HOMEMADE ACHAR FROM JAIPUR • FREE SHIPPING ON ALL ORDERS</span>
@@ -76,7 +96,7 @@ export default function Navbar() {
               <img 
                 src="/images/logo.png" 
                 alt="RS Savoury Logo" 
-                style={{ height: '210px', width: 'auto', objectFit: 'contain' }} 
+                className="navbar-logo-img"
               />
             </Link>
             <div 
