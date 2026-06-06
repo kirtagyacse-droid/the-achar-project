@@ -1,45 +1,15 @@
-{
-  "name": "TheAcharProject",
-  "options": {
-    "bundleIdPrefix": "com.example",
-    "deploymentTarget": {
-      "iOS": "16.0"
-    }
-  },
-  "targets": {
-    "TheAcharProject": {
-      "type": "application",
-      "platform": "iOS",
-      "sources": [
-        {
-          "path": "."
-        }
-      ],
-      "info": {
-        "properties": {
-          "CFBundleDisplayName": "The Achar Project",
-          "CFBundleIdentifier": "com.example.theacharproject",
-          "CFBundleShortVersionString": "1.0",
-          "CFBundleVersion": "1",
-          "LSRequiresIPhoneOS": true,
-          "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
-          "NSAppTransportSecurity": {
-            "NSAllowsArbitraryLoads": true
-          }
-        }
-      },
-      "settings": {
-        "base": {
-          "PRODUCT_BUNDLE_IDENTIFIER": "com.example.theacharproject",
-          "SWIFT_VERSION": "5.9",
-          "IPHONEOS_DEPLOYMENT_TARGET": "16.0",
-          "CODE_SIGN_IDENTITY": "",
-          "CODE_SIGNING_REQUIRED": "NO",
-          "CODE_SIGNING_ALLOWED": "NO",
-          "DEVELOPMENT_TEAM": "",
-          "ENABLE_BITCODE": "NO"
-        }
-      }
-    }
-  }
-}
+name: TheAcharProject
+options:
+  bundleIdPrefix: com.example
+
+targets:
+  TheAcharProject:
+    type: application
+    platform: iOS
+    sources: ["."]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.theacharproject
+      SWIFT_VERSION: 5.9
+      IPHONEOS_DEPLOYMENT_TARGET: 16.0
+      CODE_SIGNING_REQUIRED: NO
+      CODE_SIGNING_ALLOWED: NO
