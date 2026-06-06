@@ -3,19 +3,16 @@ options:
   bundleIdPrefix: com.example
   deploymentTarget:
     iOS: "16.0"
-  xcodeVersion: "15"
 
 targets:
   TheAcharProject:
     type: application
     platform: iOS
-    deploymentTarget: "16.0"
     sources:
-      - path: .
+      - path: "."
         excludes:
-          - project.yml
-          - "*.zip"
-    productName: TheAcharProject
+          - "project.yml"
+          - "\\.zip$"
     info:
       properties:
         CFBundleDisplayName: The Achar Project
@@ -23,8 +20,6 @@ targets:
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         LSRequiresIPhoneOS: true
-        UILaunchScreen:
-          UIColorName: ""
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSAppTransportSecurity:

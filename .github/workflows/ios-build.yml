@@ -22,9 +22,11 @@ jobs:
       - name: Generate Xcode Project
         run: |
           cd ios-app
-          xcodegen generate
-          ls -la TheAcharProject.xcodeproj || true
-          cat TheAcharProject.xcodeproj/project.pbxproj | head -50 || true
+          xcodegen generate 2>&1 || true
+          echo "---Project.yml content---"
+          cat project.yml || true
+          echo "---FileList---"
+          ls -la *.swift || true
 
       - name: Build iOS App for Simulator
         run: |
