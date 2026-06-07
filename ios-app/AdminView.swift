@@ -362,9 +362,9 @@ struct AdminView: View {
                                         .cornerRadius(6)
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .simultaneousGesture(TapGesture().perform {
+                                    .onTapGesture {
                                         uploadingOrderId = order.id
-                                    })
+                                    }
                                 }
                             }
                             .padding(.top, 6)
