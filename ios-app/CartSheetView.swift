@@ -55,34 +55,34 @@ struct CartSheetView: View {
                                     }
                                     Spacer()
                                     
-// Quantity Controls
-                                     HStack(spacing: 12) {
-                                         Button(action: {
-                                             if let index = cartItems.firstIndex(where: { $0.id == item.id }) {
-                                                 if cartItems[index].quantity > 1 {
-                                                     cartItems[index].quantity -= 1
-                                                 } else {
-                                                     cartItems.remove(at: index)
-                                                 }
-                                             }
-                                         }) {
-                                             Image(systemName: "minus.circle.fill")
-                                                 .foregroundColor(.gray)
-                                         }
-                                         
-                                         Text("\(item.quantity)")
-                                             .fontWeight(.bold)
-                                         
-                                         Button(action: {
-                                             if let index = cartItems.firstIndex(where: { $0.id == item.id }) {
-                                                 cartItems[index].quantity += 1
-                                             }
-                                         }) {
-                                             Image(systemName: "plus.circle.fill")
-                                                 .foregroundColor(Color(red: 154/255, green: 44/255, blue: 44/255))
-                                         }
-                                     }
-                                 }
+                                    // Quantity Controls
+                                    HStack(spacing: 12) {
+                                        Button(action: {
+                                            if let index = cartItems.firstIndex(where: { $0.id == item.id }) {
+                                                if cartItems[index].quantity > 1 {
+                                                    cartItems[index].quantity -= 1
+                                                } else {
+                                                    cartItems.remove(at: index)
+                                                }
+                                            }
+                                        }) {
+                                            Image(systemName: "minus.circle.fill")
+                                                .foregroundColor(.gray)
+                                        }
+                                        
+                                        Text("\(item.quantity)")
+                                            .fontWeight(.bold)
+                                        
+                                        Button(action: {
+                                            if let index = cartItems.firstIndex(where: { $0.id == item.id }) {
+                                                cartItems[index].quantity += 1
+                                            }
+                                        }) {
+                                            Image(systemName: "plus.circle.fill")
+                                                .foregroundColor(Color(red: 154/255, green: 44/255, blue: 44/255))
+                                        }
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                         }
