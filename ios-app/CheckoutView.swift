@@ -236,15 +236,6 @@ struct CheckoutView: View {
         
         isSubmitting = true
         
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/orders") else {
-            isSubmitting = false
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         let itemsJson = cartItems.map { item -> [String: Any] in
             return [
                 "productId": item.product.id,
@@ -253,57 +244,36 @@ struct CheckoutView: View {
             ]
         }
         
-        var bodyJson: [String: Any] = [
-            "customerName": name,
-            "phone": phone,
-            "address": address,
-            "city": city,
-            "state": state,
-            "pincode": pincode,
-            "totalAmount": grandTotal,
-            "isGiftOrder": isGiftOrder,
-            "items": itemsJson
-        ]
-        
-        if !altPhone.isEmpty { bodyJson["altPhone"] = altPhone }
-        if !landmark.isEmpty { bodyJson["landmark"] = landmark }
-        if !notes.isEmpty { bodyJson["notes"] = notes }
-        if isGiftOrder {
-            bodyJson["giftPackaging"] = giftWrapType
-            if !giftMessageText.isEmpty { bodyJson["giftMessage"] = giftMessageText }
-        }
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: bodyJson, options: [])
-        } catch {
+        networkManager.submitOrder(
+            name: name,
+            phone: phone,
+            altPhone: altPhone.isEmpty ? nil : altPhone,
+            address: address,
+            landmark: landmark.isEmpty ? nil : landmark,
+            city: city,
+            state: state,
+            pincode: pincode,
+            notes: notes.isEmpty ? nil : notes,
+            totalAmount: grandTotal,
+            isGiftOrder: isGiftOrder,
+            giftPackaging: giftWrapType,
+            giftMessage: giftMessageText.isEmpty ? nil : giftMessageText,
+            items: itemsJson
+        ) { result in
             isSubmitting = false
-            return
-        }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isSubmitting = false
-                
-                if let error = error {
-                    print("Checkout error: \(error.localizedDescription)")
-                    warningMessage = "Failed to send order: \(error.localizedDescription)"
-                    showWarning = true
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    warningMessage = "Invalid response from server"
-                    showWarning = true
-                    return
-                }
-                
-                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+            switch result {
+            case .success(let statusCode):
+                if statusCode == 200 || statusCode == 201 {
                     showSuccessAlert = true
                 } else {
-                    warningMessage = "Failed to submit order. Server code: \(httpResponse.statusCode)"
+                    warningMessage = "Failed to submit order. Server code: \(statusCode)"
                     showWarning = true
                 }
+            case .failure(let error):
+                print("Checkout error: \(error.localizedDescription)")
+                warningMessage = "Failed to send order: \(error.localizedDescription)"
+                showWarning = true
             }
-        }.resume()
+        }
     }
 }

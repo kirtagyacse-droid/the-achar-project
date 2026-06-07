@@ -1,83 +1,6 @@
 import SwiftUI
 import PhotosUI
 
-// --- Codable Models for Admin Dashboard ---
-struct AdminDashboardData: Codable {
-    let orders: [AdminOrder]
-    let products: [Product]
-    let subscriptions: [AdminSubscription]
-    let passports: [AdminPassport]
-    let jarReturns: [AdminJarReturn]
-    let referrals: [AdminReferral]
-}
-
-struct AdminOrder: Identifiable, Codable {
-    let id: String
-    let customerName: String
-    let phone: String
-    let altPhone: String?
-    let address: String
-    let landmark: String?
-    let city: String
-    let state: String
-    let pincode: String
-    let notes: String?
-    let totalAmount: Double
-    let status: String
-    let paymentMethod: String
-    let isGiftOrder: Bool
-    let giftMessage: String?
-    let giftPackaging: String?
-    let dispatchPhotoUrl: String?
-    let items: [AdminOrderItem]
-}
-
-struct AdminOrderItem: Identifiable, Codable {
-    let id: String
-    let productId: String
-    let quantity: Int
-    let price: Double
-    let product: Product
-}
-
-struct AdminSubscription: Identifiable, Codable {
-    let id: String
-    let customerName: String
-    let phone: String
-    let email: String?
-    let address: String
-    let planJars: Int
-    let isActive: Bool
-    let notes: String?
-}
-
-struct AdminPassport: Identifiable, Codable {
-    let id: String
-    let phone: String
-    let customerName: String
-    let stamps: [String]
-    let isComplete: Bool
-    let freeJarClaimed: Bool
-}
-
-struct AdminJarReturn: Identifiable, Codable {
-    let id: String
-    let phone: String
-    let customerName: String
-    let jarCount: Int
-    let discountApplied: Bool
-}
-
-struct AdminReferral: Identifiable, Codable {
-    let id: String
-    let referrerPhone: String
-    let referrerName: String
-    let referralCode: String
-    let usedByPhone: String?
-    let usedByName: String?
-    let isUsed: Bool
-}
-
 struct AdminView: View {
     @EnvironmentObject var networkManager: NetworkManager
     @State private var password = ""
@@ -92,7 +15,7 @@ struct AdminView: View {
     
     // Product Dialog States
     @State private var showProductSheet = false
-    @State private var editingProduct: Product? = nil // null = add product
+    @State private var editingProduct: Product? = nil
     @State private var prodName = ""
     @State private var prodDesc = ""
     @State private var prodPrice = ""
@@ -267,58 +190,34 @@ struct AdminView: View {
     
     // --- Authentication ---
     func loginToAdmin() {
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/login") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let bodyJson = ["password": password]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: bodyJson, options: [])
-        
         isSubmitting = true
         showError = false
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isSubmitting = false
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                    isAuthenticated = true
-                    fetchDashboardData()
-                } else {
-                    showError = true
-                }
+        networkManager.adminLogin(password: password) { success in
+            isSubmitting = false
+            if success {
+                isAuthenticated = true
+                fetchDashboardData()
+            } else {
+                showError = true
             }
-        }.resume()
+        }
     }
     
     // --- Fetch Dashboard Data ---
     func fetchDashboardData() {
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/dashboard") else { return }
-        
         isLoadingData = true
         syncError = nil
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            DispatchQueue.main.async {
-                isLoadingData = false
-                if let error = error {
-                    syncError = error.localizedDescription
-                    return
-                }
-                
-                guard let data = data else {
-                    syncError = "No data received"
-                    return
-                }
-                
-                do {
-                    let decoded = try JSONDecoder().decode(AdminDashboardData.self, from: data)
-                    dashboardData = decoded
-                } catch {
-                    print("Decoding error: \(error)")
-                    syncError = "Decoding failure: \(error.localizedDescription)"
-                }
+        networkManager.fetchDashboardData { result in
+            isLoadingData = false
+            switch result {
+            case .success(let data):
+                dashboardData = data
+            case .failure(let error):
+                syncError = error.localizedDescription
             }
-        }.resume()
+        }
     }
     
     // --- Sub-Views for Dashboard Tabs ---
@@ -735,129 +634,55 @@ struct AdminView: View {
     // --- Helper Functions to Update Dashboard State ---
     
     func updateStatus(orderId: String, status: String) {
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/orders/\(orderId)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body = ["status": status]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-        
         isLoadingData = true
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                fetchDashboardData()
-            }
-        }.resume()
+        networkManager.updateOrderStatus(orderId: orderId, status: status) {
+            fetchDashboardData()
+        }
     }
     
     func uploadPhoto(orderId: String, data: Data) {
         isUploadingPhoto = true
-        
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/orders/\(orderId)/dispatch-photo") else {
+        networkManager.uploadDispatchPhoto(orderId: orderId, data: data) {
             isUploadingPhoto = false
-            return
+            fetchDashboardData()
         }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
-        var body = Data()
-        let lineEnd = "\r\n"
-        let twoHyphens = "--"
-        
-        body.append(Data("\(twoHyphens)\(boundary)\(lineEnd)".utf8))
-        body.append(Data("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\(lineEnd)".utf8))
-        body.append(Data("Content-Type: image/jpeg\(lineEnd)\(lineEnd)".utf8))
-        body.append(data)
-        body.append(Data("\(lineEnd)".utf8))
-        body.append(Data("\(twoHyphens)\(boundary)\(twoHyphens)\(lineEnd)".utf8))
-        
-        request.httpBody = body
-        
-        URLSession.shared.dataTask(with: request) { _, response, error in
-            DispatchQueue.main.async {
-                isUploadingPhoto = false
-                if let error = error {
-                    print("Error uploading photo: \(error)")
-                }
-                fetchDashboardData()
-            }
-        }.resume()
     }
     
     func saveProduct() {
         guard let priceVal = Double(prodPrice) else { return }
         let stockVal = Int(prodStockCount) ?? 10
         
-        let prodId = editingProduct?.id
-        let endpoint = prodId == nil ? "/api/admin/products" : "/api/admin/products/\(prodId!)"
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)\(endpoint)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = prodId == nil ? "POST" : "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        var bodyJson: [String: Any] = [
-            "name": prodName,
-            "description": prodDesc,
-            "price": priceVal,
-            "imageUrl": prodImgUrl,
-            "category": prodCategory,
-            "stockStatus": prodStockStatus,
-            "stockCount": stockVal,
-            "spiciness": prodSpiciness
-        ]
-        
-        if prodId != nil {
-            bodyJson["id"] = prodId!
-        }
-        
-        request.httpBody = try? JSONSerialization.data(withJSONObject: bodyJson, options: [])
-        
         isLoadingData = true
         showProductSheet = false
         
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                fetchDashboardData()
-                networkManager.fetchProducts() // reload general menu
-            }
-        }.resume()
+        networkManager.saveProduct(
+            id: editingProduct?.id,
+            name: prodName,
+            description: prodDesc,
+            price: priceVal,
+            imageUrl: prodImgUrl,
+            category: prodCategory,
+            stockStatus: prodStockStatus,
+            stockCount: stockVal,
+            spiciness: prodSpiciness
+        ) {
+            fetchDashboardData()
+            networkManager.fetchProducts()
+        }
     }
     
     func deleteProduct(productId: String) {
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/products/\(productId)") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        
         isLoadingData = true
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                fetchDashboardData()
-                networkManager.fetchProducts() // reload general menu
-            }
-        }.resume()
+        networkManager.deleteProduct(productId: productId) {
+            fetchDashboardData()
+            networkManager.fetchProducts()
+        }
     }
     
     func claimPassportGift(phone: String) {
-        guard let url = URL(string: "\(networkManager.apiBaseUrl)/api/admin/claim-passport") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body = ["phone": phone]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-        
         isLoadingData = true
-        URLSession.shared.dataTask(with: request) { _, _, _ in
-            DispatchQueue.main.async {
-                fetchDashboardData()
-            }
-        }.resume()
+        networkManager.claimPassportGift(phone: phone) {
+            fetchDashboardData()
+        }
     }
 }
