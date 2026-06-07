@@ -3,16 +3,14 @@ import SwiftUI
 struct CatalogView: View {
     @EnvironmentObject var networkManager: NetworkManager
     @Binding var cartItems: [CartItem]
-    @Binding var showCartSheet: Bool
+    @Binding var activeSheet: MainLayoutView.ActiveSheet?
     
     @State private var selectedCategory: String = "All"
-    @Binding var selectedProduct: Product?
     
     let categories = ["All", "Pickle", "Pantry", "Seasonal"]
     
     var filteredProducts: [Product] {
         if selectedCategory == "All" {
-            // Exclude explicit seasonal / pantry sections so they render in custom blocks
             return networkManager.products.filter { $0.season == nil && $0.category != "Pantry" && $0.category != "From Our Pantry" && $0.category != "Summer Special" && $0.category != "Winter Special" }
         } else if selectedCategory == "Seasonal" {
             return networkManager.products.filter { $0.season != nil }
@@ -22,12 +20,11 @@ struct CatalogView: View {
     }
     
     var seasonalProducts: [Product] {
-        let currentSeason = getCurrentAppSeason()
-        return networkManager.products.filter { $0.season == currentSeason }
+        networkManager.products.filter { $0.season == getCurrentAppSeason() }
     }
     
     var pantryProducts: [Product] {
-        return networkManager.products.filter { $0.category.lowercased() == "pantry" || $0.category.lowercased() == "from our pantry" }
+        networkManager.products.filter { $0.category.lowercased() == "pantry" || $0.category.lowercased() == "from our pantry" }
     }
     
     var body: some View {
@@ -56,13 +53,12 @@ struct CatalogView: View {
                 
                 // Show custom seasonal sections in the "All" tab
                 if selectedCategory == "All" {
-                    let currentSeason = getCurrentAppSeason()
                     if !seasonalProducts.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Image(systemName: currentSeason == "summer" ? "sun.max.fill" : "snowflake")
-                                    .foregroundColor(currentSeason == "summer" ? .orange : .blue)
-                                Text(currentSeason == "summer" ? "Summer Specials" : "Winter Specials")
+                                Image(systemName: getCurrentAppSeason() == "summer" ? "sun.max.fill" : "snowflake")
+                                    .foregroundColor(getCurrentAppSeason() == "summer" ? .orange : .blue)
+                                Text(getCurrentAppSeason() == "summer" ? "Summer Specials" : "Winter Specials")
                                     .font(.system(.headline, design: .serif))
                                     .fontWeight(.bold)
                                     .foregroundColor(Color(red: 154/255, green: 44/255, blue: 44/255))
@@ -73,14 +69,14 @@ struct CatalogView: View {
                                 HStack(spacing: 12) {
                                     ForEach(seasonalProducts) { product in
                                         ProductCard(product: product)
-                                            .onTapGesture { selectedProduct = product }
+                                            .onTapGesture { activeSheet = .product(product) }
                                     }
                                 }
                                 .padding(.horizontal, 16)
                             }
                         }
                         .padding(.vertical, 12)
-                        .background(currentSeason == "summer" ? Color.orange.opacity(0.05) : Color.blue.opacity(0.05))
+                        .background(getCurrentAppSeason() == "summer" ? Color.orange.opacity(0.05) : Color.blue.opacity(0.05))
                     }
                     
                     if !pantryProducts.isEmpty {
@@ -99,7 +95,7 @@ struct CatalogView: View {
                                 HStack(spacing: 12) {
                                     ForEach(pantryProducts) { product in
                                         ProductCard(product: product)
-                                            .onTapGesture { selectedProduct = product }
+                                            .onTapGesture { activeSheet = .product(product) }
                                     }
                                 }
                                 .padding(.horizontal, 16)
@@ -132,7 +128,7 @@ struct CatalogView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                         ForEach(filteredProducts) { product in
                             ProductCard(product: product)
-                                .onTapGesture { selectedProduct = product }
+                                .onTapGesture { activeSheet = .product(product) }
                         }
                     }
                     .padding(.horizontal, 16)
@@ -227,7 +223,7 @@ struct ProductDetailView: View {
     @EnvironmentObject var networkManager: NetworkManager
     let product: Product
     @Binding var cartItems: [CartItem]
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         ScrollView {
@@ -249,7 +245,7 @@ struct ProductDetailView: View {
                             .background(Color(white: 0.98))
                     }
                     
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: { dismiss() }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title)
                             .foregroundColor(.white)
@@ -326,7 +322,7 @@ struct ProductDetailView: View {
                             } else {
                                 cartItems.append(CartItem(product: product, quantity: 1))
                             }
-                            presentationMode.wrappedValue.dismiss()
+                            dismiss()
                         }) {
                             Text("Add to Cart")
                                 .font(.system(.headline, design: .serif))

@@ -176,7 +176,7 @@ struct AdminView: View {
         .sheet(isPresented: $showProductSheet) {
             productUpsertSheet()
         }
-        .onChange(of: selectedPhotoItem) { newItem in
+        .onChange(of: selectedPhotoItem) { _, newItem in
             guard let item = newItem, let orderId = uploadingOrderId else { return }
             Task {
                 if let photoData = try? await item.loadTransferable(type: Data.self) {
@@ -362,9 +362,9 @@ struct AdminView: View {
                                         .cornerRadius(6)
                                     }
                                     .buttonStyle(.plain)
-                                    .onTapGesture {
+                                    .simultaneousGesture(TapGesture().onEnded {
                                         uploadingOrderId = order.id
-                                    }
+                                    })
                                 }
                             }
                             .padding(.top, 6)

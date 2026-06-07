@@ -8,7 +8,14 @@ struct CheckoutView: View {
     let giftWrapType: String
     let giftMessageText: String
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
+    
+    enum ActiveAlert: Identifiable {
+        case warning, success
+        var id: Int { hashValue }
+    }
+    @State private var activeAlert: ActiveAlert? = nil
+    @State private var warningMessage = ""
     
     @State private var name = ""
     @State private var phone = ""
@@ -21,9 +28,6 @@ struct CheckoutView: View {
     @State private var notes = ""
     
     @State private var isSubmitting = false
-    @State private var showWarning = false
-    @State private var warningMessage = ""
-    @State private var showSuccessAlert = false
     
     var baseTotal: Double {
         cartItems.reduce(0) { $0 + ($1.product.price * Double($1.quantity)) }
@@ -188,21 +192,23 @@ struct CheckoutView: View {
             }
             .navigationTitle("Checkout Details")
             .navigationBarItems(leading: Button("Cancel") {
-                presentationMode.wrappedValue.dismiss()
+                dismiss()
             })
-            .alert(isPresented: $showWarning) {
-                Alert(title: Text("Missing Info"), message: Text(warningMessage), dismissButton: .default(Text("OK")))
+            .alert(item: $activeAlert) { alert in
+                switch alert {
+                case .warning:
+                    return Alert(title: Text("Missing Info"), message: Text(warningMessage), dismissButton: .default(Text("OK")))
+                case .success:
+                    return Alert(
+                        title: Text("Success!"),
+                        message: Text("Order placed successfully!"),
+                        dismissButton: .default(Text("Done"), action: {
+                            cartItems.removeAll()
+                            dismiss()
+                        })
+                    )
+                }
             }
-        }
-        .alert(isPresented: $showSuccessAlert) {
-            Alert(
-                title: Text("Success!"),
-                message: Text("Order placed successfully!"),
-                dismissButton: .default(Text("Done"), action: {
-                    cartItems.removeAll()
-                    presentationMode.wrappedValue.dismiss()
-                })
-            )
         }
     }
     
@@ -223,14 +229,14 @@ struct CheckoutView: View {
         if let encoded = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let url = URL(string: "https://wa.me/919876543210?text=\(encoded)") {
             UIApplication.shared.open(url)
-            showSuccessAlert = true
+            activeAlert = .success
         }
     }
     
     func placeServerOrder() {
         if name.isEmpty || phone.isEmpty || address.isEmpty || pincode.isEmpty {
             warningMessage = "Please fill in all required fields (Name, Phone, Address, Pincode)"
-            showWarning = true
+            activeAlert = .warning
             return
         }
         
@@ -264,15 +270,15 @@ struct CheckoutView: View {
             switch result {
             case .success(let statusCode):
                 if statusCode == 200 || statusCode == 201 {
-                    showSuccessAlert = true
+                    activeAlert = .success
                 } else {
                     warningMessage = "Failed to submit order. Server code: \(statusCode)"
-                    showWarning = true
+                    activeAlert = .warning
                 }
             case .failure(let error):
                 print("Checkout error: \(error.localizedDescription)")
                 warningMessage = "Failed to send order: \(error.localizedDescription)"
-                showWarning = true
+                activeAlert = .warning
             }
         }
     }

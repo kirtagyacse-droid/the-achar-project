@@ -8,6 +8,25 @@ struct FlavorQuizView: View {
     @State private var prefSpice = 2 // 1: Mild, 2: Medium, 3: Spicy
     @State private var prefSweetSour = "sour" // "sweet", "sour", "both"
     
+    var quizMatches: [Product] {
+        productsList.filter { product in
+            let spicinessMatch = abs(product.spiciness - prefSpice) <= 1
+            let profileMatch: Bool
+            if prefSweetSour == "sour" {
+                profileMatch = product.flavorProfile.tangy >= 3
+            } else if prefSweetSour == "sweet" {
+                profileMatch = product.flavorProfile.sweet >= 3
+            } else {
+                profileMatch = true
+            }
+            return spicinessMatch && profileMatch
+        }
+    }
+    
+    var quizBestMatch: Product? {
+        quizMatches.first ?? productsList.first
+    }
+    
     var body: some View {
         VStack {
             Spacer()
@@ -133,22 +152,7 @@ struct FlavorQuizView: View {
                         }
                         .padding(.horizontal)
                     } else {
-                        let matches = productsList.filter { product in
-                            let spicinessMatch = abs(product.spiciness - prefSpice) <= 1
-                            let profileMatch: Bool
-                            if prefSweetSour == "sour" {
-                                profileMatch = product.flavorProfile.tangy >= 3
-                            } else if prefSweetSour == "sweet" {
-                                profileMatch = product.flavorProfile.sweet >= 3
-                            } else {
-                                profileMatch = true
-                            }
-                            return spicinessMatch && profileMatch
-                        }
-                        
-                        let bestMatch = matches.first ?? productsList.first
-                        
-                        if let match = bestMatch {
+                        if let match = quizBestMatch {
                             VStack(spacing: 12) {
                                 Text("Aunty's Personal Recommendation for you:")
                                     .font(.system(.body, design: .serif))

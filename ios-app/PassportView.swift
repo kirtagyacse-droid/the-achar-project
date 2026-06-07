@@ -3,6 +3,10 @@ import SwiftUI
 struct PassportView: View {
     let productsList: [Product]
     
+    var passportTotal: Int { max(productsList.count, 1) }
+    var passportUnlocked: Int { 1 }
+    var passportProgress: Double { Double(passportUnlocked) / Double(passportTotal) }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: 20) {
@@ -65,16 +69,12 @@ struct PassportView: View {
                 
                 // Progress Card
                 VStack(spacing: 12) {
-                    let total = max(productsList.count, 1)
-                    let unlocked = 1 // Mocking 1 stamp unlocked
-                    let progress = Double(unlocked) / Double(total)
-                    
-                    Text("Stamps Unlocked: \(unlocked) / \(total)")
+                    Text("Stamps Unlocked: \(passportUnlocked) / \(passportTotal)")
                         .font(.system(.body, design: .serif))
                         .fontWeight(.bold)
                         .foregroundColor(Color(white: 0.1))
                     
-                    ProgressView(value: progress)
+                    ProgressView(value: passportProgress)
                         .accentColor(Color(red: 154/255, green: 44/255, blue: 44/255))
                         .scaleEffect(x: 1, y: 1.5, anchor: .center)
                         .padding(.horizontal)

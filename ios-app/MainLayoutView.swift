@@ -4,15 +4,25 @@ struct MainLayoutView: View {
     @EnvironmentObject var networkManager: NetworkManager
     @State private var currentScreen: Screen = .catalog
     @State private var cartItems: [CartItem] = []
-    @State private var showCartSheet = false
     @State private var devTapCount = 0
-    @State private var showDevDialog = false
-    @State private var selectedProduct: Product? = nil
+    @State private var activeSheet: ActiveSheet? = nil
+    
+    enum ActiveSheet: Identifiable {
+        case cart
+        case product(Product)
+        case devSettings
+        var id: String {
+            switch self {
+            case .cart: return "cart"
+            case .product(let p): return "product-\(p.id)"
+            case .devSettings: return "devSettings"
+            }
+        }
+    }
     
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                // Header (Centered Logo & Text)
                 VStack(spacing: 4) {
                     Image(systemName: "leaf.fill")
                         .resizable()
@@ -23,7 +33,7 @@ struct MainLayoutView: View {
                         .onTapGesture {
                             devTapCount += 1
                             if devTapCount >= 5 {
-                                showDevDialog = true
+                                activeSheet = .devSettings
                                 devTapCount = 0
                             }
                         }
@@ -44,14 +54,13 @@ struct MainLayoutView: View {
                 .background(Color.white)
                 .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 2)
                 
-                // Screen Content Area
                 ZStack {
                     switch currentScreen {
                     case .catalog:
-                        CatalogView(cartItems: $cartItems, showCartSheet: $showCartSheet, selectedProduct: $selectedProduct)
+                        CatalogView(cartItems: $cartItems, activeSheet: $activeSheet)
                     case .quiz:
                         FlavorQuizView(productsList: networkManager.products) { prod in
-                            selectedProduct = prod
+                            activeSheet = .product(prod)
                             currentScreen = .catalog
                         }
                     case .passport:
@@ -66,7 +75,6 @@ struct MainLayoutView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                // Bottom Capsule Navigation Strip (floating look, clears home indicator)
                 HStack(spacing: 0) {
                     ForEach(Screen.allCases, id: \.self) { screen in
                         Button(action: {
@@ -81,7 +89,6 @@ struct MainLayoutView: View {
                                     .font(.system(size: 9, weight: currentScreen == screen ? .bold : .regular, design: .serif))
                                     .foregroundColor(currentScreen == screen ? Color(red: 154/255, green: 44/255, blue: 44/255) : .gray)
                                 
-                                // Elegant indicator underline
                                 Capsule()
                                     .fill(currentScreen == screen ? Color(red: 154/255, green: 44/255, blue: 44/255) : Color.clear)
                                     .frame(width: 16, height: 2)
@@ -96,13 +103,12 @@ struct MainLayoutView: View {
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4)
             }
             
-            // Cart floating action button overlay
-            if !cartItems.isEmpty && !showCartSheet {
+            if !cartItems.isEmpty && activeSheet?.id != "cart" {
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
-                        Button(action: { showCartSheet = true }) {
+                        Button(action: { activeSheet = .cart }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "cart.fill")
                                     .font(.system(size: 16, weight: .bold))
@@ -122,16 +128,17 @@ struct MainLayoutView: View {
                 }
             }
         }
-        .sheet(isPresented: $showCartSheet) {
-            CartSheetView(cartItems: $cartItems)
-                .environmentObject(networkManager)
-        }
-        .sheet(item: $selectedProduct) { product in
-            ProductDetailView(product: product, cartItems: $cartItems)
-                .environmentObject(networkManager)
-        }
-        .sheet(isPresented: $showDevDialog) {
-            devSettingsView()
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .cart:
+                CartSheetView(cartItems: $cartItems)
+                    .environmentObject(networkManager)
+            case .product(let product):
+                ProductDetailView(product: product, cartItems: $cartItems)
+                    .environmentObject(networkManager)
+            case .devSettings:
+                devSettingsView()
+            }
         }
     }
     
@@ -142,11 +149,11 @@ struct MainLayoutView: View {
                 Section(header: Text("Target API Server")) {
                     Button("Set to Production Vercel") {
                         networkManager.apiBaseUrl = "https://the-achar-project.vercel.app"
-                        showDevDialog = false
+                        activeSheet = nil
                     }
                     Button("Set to Local Laptop Server") {
                         networkManager.apiBaseUrl = "http://localhost:3000"
-                        showDevDialog = false
+                        activeSheet = nil
                     }
                     
                     HStack {
@@ -160,7 +167,7 @@ struct MainLayoutView: View {
             }
             .navigationTitle("Developer Configuration")
             .navigationBarItems(trailing: Button("Close") {
-                showDevDialog = false
+                activeSheet = nil
             })
         }
     }

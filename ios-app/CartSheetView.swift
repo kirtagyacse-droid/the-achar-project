@@ -3,7 +3,7 @@ import SwiftUI
 struct CartSheetView: View {
     @EnvironmentObject var networkManager: NetworkManager
     @Binding var cartItems: [CartItem]
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var isGiftWrap = false
     @State private var giftWrapType = "cloth" // "cloth" or "wood"
@@ -36,7 +36,7 @@ struct CartSheetView: View {
                         Text("Your cart is empty")
                             .font(.headline)
                         Button("Start Shopping") {
-                            presentationMode.wrappedValue.dismiss()
+                            dismiss()
                         }
                         .foregroundColor(Color(red: 154/255, green: 44/255, blue: 44/255))
                     }
@@ -152,7 +152,7 @@ struct CartSheetView: View {
             }
             .navigationTitle("Shopping Cart")
             .navigationBarItems(trailing: Button("Close") {
-                presentationMode.wrappedValue.dismiss()
+                dismiss()
             })
             .sheet(isPresented: $showCheckoutSuccess) {
                 CheckoutView(

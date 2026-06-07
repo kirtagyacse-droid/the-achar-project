@@ -67,7 +67,7 @@ struct Product: Identifiable, Codable, Hashable {
     }
 }
 
-struct CartItem: Identifiable, Codable, Hashable {
+struct CartItem: Identifiable, Hashable {
     var id: String { product.id }
     let product: Product
     var quantity: Int
