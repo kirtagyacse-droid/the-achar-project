@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CartSheetView: View {
+    @EnvironmentObject var networkManager: NetworkManager
     @Binding var cartItems: [CartItem]
     @Environment(\.presentationMode) var presentationMode
     
@@ -138,8 +139,8 @@ struct CartSheetView: View {
                     Button(action: {
                         showCheckoutSuccess = true
                     }) {
-                        Text("Place Order via WhatsApp")
-                            .font(.headline)
+                        Text("Proceed to Checkout")
+                            .font(.system(.headline, design: .serif))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -154,31 +155,13 @@ struct CartSheetView: View {
                 presentationMode.wrappedValue.dismiss()
             })
             .sheet(isPresented: $showCheckoutSuccess) {
-                VStack(spacing: 20) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.green)
-                    
-                    Text("Order Placed Successfully!")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    Text("We've prepared your order details. Connect with us on WhatsApp to finalize your shipment.")
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                    
-                    Button("Done") {
-                        cartItems.removeAll()
-                        showCheckoutSuccess = false
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 12)
-                    .background(Color(red: 154/255, green: 44/255, blue: 44/255))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                }
-                .padding()
+                CheckoutView(
+                    cartItems: $cartItems,
+                    isGiftOrder: isGiftWrap,
+                    giftWrapType: giftWrapType,
+                    giftMessageText: giftMessage
+                )
+                .environmentObject(networkManager)
             }
         }
     }
