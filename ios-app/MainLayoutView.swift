@@ -89,7 +89,7 @@ struct MainLayoutView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .buttonStyle(.plain)
                     }
                 }
                 .background(Color.white)

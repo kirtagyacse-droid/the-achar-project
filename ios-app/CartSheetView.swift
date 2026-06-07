@@ -82,7 +82,7 @@ struct CartSheetView: View {
                                                 .foregroundColor(Color(red: 154/255, green: 44/255, blue: 44/255))
                                         }
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .buttonStyle(.plain)
                                 }
                             }
                         }
@@ -102,10 +102,10 @@ struct CartSheetView: View {
                                     Text("Traditional Cloth Potli (+₹80)").tag("cloth")
                                     Text("Handcrafted Pine Wood Box (+₹150)").tag("wood")
                                 }
-                                .pickerStyle(SegmentedPickerStyle())
+                                .pickerStyle(.segmented)
                                 
                                 TextField("Enter a personal gift note...", text: $giftMessage)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .textFieldStyle(.roundedBorder)
                                     .padding(.vertical, 4)
                             }
                         }

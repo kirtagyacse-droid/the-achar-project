@@ -79,6 +79,7 @@ struct AdminReferral: Identifiable, Codable {
 }
 // --- End Admin Models ---
 
+@MainActor
 class NetworkManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var isLoading = false

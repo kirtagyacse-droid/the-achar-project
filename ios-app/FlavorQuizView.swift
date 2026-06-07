@@ -45,7 +45,7 @@ struct FlavorQuizView: View {
                                             .stroke(Color(white: 0.9), lineWidth: 1)
                                     )
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                             
                             Button(action: {
                                 prefSpice = 2
@@ -60,7 +60,7 @@ struct FlavorQuizView: View {
                                     .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                     .cornerRadius(8)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                             
                             Button(action: {
                                 prefSpice = 3
@@ -75,7 +75,7 @@ struct FlavorQuizView: View {
                                     .background(Color(red: 198/255, green: 40/255, blue: 40/255))
                                     .cornerRadius(8)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal)
                     } else if step == 2 {
@@ -99,7 +99,7 @@ struct FlavorQuizView: View {
                                     .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                     .cornerRadius(8)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                             
                             Button(action: {
                                 prefSweetSour = "sweet"
@@ -114,7 +114,7 @@ struct FlavorQuizView: View {
                                     .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                     .cornerRadius(8)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                             
                             Button(action: {
                                 prefSweetSour = "both"
@@ -129,7 +129,7 @@ struct FlavorQuizView: View {
                                     .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                     .cornerRadius(8)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal)
                     } else {
@@ -185,7 +185,7 @@ struct FlavorQuizView: View {
                                         .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                         .cornerRadius(8)
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                                .buttonStyle(.plain)
                                 .padding(.top, 8)
                             }
                         } else {
@@ -202,7 +202,7 @@ struct FlavorQuizView: View {
                                 .foregroundColor(.gray)
                                 .underline()
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .buttonStyle(.plain)
                         .padding(.top, 8)
                     }
                 }

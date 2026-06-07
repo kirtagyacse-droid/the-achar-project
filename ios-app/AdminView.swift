@@ -43,7 +43,7 @@ struct AdminView: View {
                         .fontWeight(.bold)
                     
                     SecureField("Enter Admin Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .frame(width: 250)
                         .multilineTextAlignment(.center)
                     
@@ -60,7 +60,7 @@ struct AdminView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .buttonStyle(.plain)
                     }
                     
                     if showError {
@@ -123,7 +123,7 @@ struct AdminView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .buttonStyle(.plain)
                     }
                 }
                 .background(Color.white)
@@ -339,7 +339,7 @@ struct AdminView: View {
                                             .background(order.status == statusOption ? Color(red: 154/255, green: 44/255, blue: 44/255) : Color(white: 0.9))
                                             .cornerRadius(4)
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .buttonStyle(.plain)
                                 }
                             }
                         }
@@ -361,7 +361,7 @@ struct AdminView: View {
                                         .background(Color(white: 0.2))
                                         .cornerRadius(6)
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .buttonStyle(.plain)
                                     .onTapGesture {
                                         uploadingOrderId = order.id
                                     }
@@ -406,7 +406,7 @@ struct AdminView: View {
                     .background(Color.green)
                     .cornerRadius(8)
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             
             if data.products.isEmpty {
                 Text("No products in menu.")
@@ -444,7 +444,7 @@ struct AdminView: View {
                                     .background(Color(white: 0.3))
                                     .cornerRadius(4)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                             
                             Button(action: { deleteProduct(productId: product.id) }) {
                                 Text("Delete")
@@ -455,7 +455,7 @@ struct AdminView: View {
                                     .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                                     .cornerRadius(4)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(12)
@@ -532,7 +532,7 @@ struct AdminView: View {
                                 .padding(.vertical, 6)
                                 .background(Color.green)
                                 .cornerRadius(4)
-                                .buttonStyle(PlainButtonStyle())
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.vertical, 4)
@@ -615,7 +615,7 @@ struct AdminView: View {
                         Text("IN_STOCK").tag("IN_STOCK")
                         Text("OUT_OF_STOCK").tag("OUT_OF_STOCK")
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(.segmented)
                     
                     TextField("Stock Count", text: $prodStockCount)
                         .keyboardType(.numberPad)

@@ -63,16 +63,16 @@ struct CheckoutView: View {
                     // Form fields
                     VStack(spacing: 12) {
                         TextField("Name *", text: $name)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                         
                         TextField("Phone Number *", text: $phone)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                             .keyboardType(.phonePad)
                         
                         TextField("Alternative Phone (Optional)", text: $altPhone)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                             .keyboardType(.phonePad)
                         
@@ -94,26 +94,26 @@ struct CheckoutView: View {
                         }
                         
                         TextField("Landmark (Optional)", text: $landmark)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                         
                         HStack {
                             TextField("City *", text: $city)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .serif))
                             
                             TextField("State *", text: $state)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .serif))
                         }
                         
                         TextField("Pincode *", text: $pincode)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                             .keyboardType(.numberPad)
                         
                         TextField("Delivery Instructions / Notes", text: $notes)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .serif))
                     }
                     .padding(.horizontal)
@@ -180,7 +180,7 @@ struct CheckoutView: View {
                                 .background(networkManager.isOffline ? Color(red: 37/255, green: 211/255, blue: 102/255) : Color(red: 154/255, green: 44/255, blue: 44/255))
                                 .cornerRadius(12)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .buttonStyle(.plain)
                         .padding(.horizontal)
                     }
                 }

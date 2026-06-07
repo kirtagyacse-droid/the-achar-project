@@ -26,16 +26,16 @@ struct ReturnsView: View {
                 
                 VStack(spacing: 16) {
                     TextField("Name", text: $name)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .serif))
                     
                     TextField("Phone Number", text: $phone)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .serif))
                         .keyboardType(.phonePad)
                     
                     TextField("Number of Jars (Min. 5)", text: $jarsCount)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .serif))
                         .keyboardType(.numberPad)
                     
@@ -92,7 +92,7 @@ struct ReturnsView: View {
                         .background(Color(red: 154/255, green: 44/255, blue: 44/255))
                         .cornerRadius(12)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
                 .padding(.horizontal)
                 .padding(.top, 10)
                 .padding(.bottom, 80) // bottom bar padding buffer
