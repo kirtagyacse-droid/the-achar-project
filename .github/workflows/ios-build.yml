@@ -5,16 +5,22 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build iOS App for Simulator
-    runs-on: macos-latest
-    
+    runs-on: macos-15
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -27,27 +33,33 @@ jobs:
       - name: Build iOS App for Simulator
         run: |
           cd ios-app
+          set -o pipefail
           xcodebuild -project TheAcharProject.xcodeproj \
             -scheme TheAcharProject \
             -configuration Debug \
             -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build 2>&1 | tee build_log.txt; \
+          BUILD_EXIT=${PIPESTATUS}; \
+          if [ $BUILD_EXIT -ne 0 ]; then \
+            echo "--- BUILD FAILED. Raw errors below: ---"; \
+            grep -E "error:|warning:" build_log.txt | head -60; \
+            exit $BUILD_EXIT; \
+          fi
 
       - name: Package Simulator App Bundle
         run: |
           APP_PATH=$(find ios-app/build/Build/Products/Debug-iphonesimulator -name "*.app" -maxdepth 1 | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app found, checking structure..."
+            echo "Error: No .app found"
             find ios-app/build -name "*.app" -type d || true
-            ls -la ios-app/build/Build/Products/ || true
             exit 1
           fi
           APP_NAME=$(basename "$APP_PATH")
-          # Zip the .app at root level for Appetize.io compatibility
           cd ios-app/build/Build/Products/Debug-iphonesimulator
           zip -r "$GITHUB_WORKSPACE/TheAcharProject.zip" "$APP_NAME"
 
