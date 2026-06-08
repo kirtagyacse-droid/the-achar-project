@@ -13,6 +13,8 @@ export interface Product {
   category: string;
   createdAt: Date;
   updatedAt: Date;
+  batchNumber?: string | null;
+  batchDate?: string | Date | null;
 }
 
 export interface OrderItem {
@@ -45,6 +47,7 @@ export interface Order {
   isGiftOrder?: boolean;
   giftPackaging?: string | null;
   giftMessage?: string | null;
+  referralCode?: string | null;
 }
 
 export interface FestivalAlert {
@@ -123,6 +126,17 @@ export interface Referral {
   createdAt: Date | string;
 }
 
+export interface StockAdjustment {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  reason: string;
+  notes: string | null;
+  batchNumber: string | null;
+  createdAt: string | Date;
+}
+
 interface AdminClientProps {
   initialOrders: Order[];
   initialProducts: Product[];
@@ -132,6 +146,7 @@ interface AdminClientProps {
   initialPassports: PicklePassport[];
   initialJarReturns: JarReturn[];
   initialReferrals: Referral[];
+  initialStockAdjustments: StockAdjustment[];
   isWhatsAppAlertConfigured: boolean;
 }
 
@@ -144,6 +159,7 @@ export default function AdminClient({
   initialPassports,
   initialJarReturns,
   initialReferrals,
+  initialStockAdjustments,
   isWhatsAppAlertConfigured 
 }: AdminClientProps) {
   // Core states
@@ -155,24 +171,13 @@ export default function AdminClient({
   const [passports, setPassports] = useState<PicklePassport[]>(initialPassports);
   const [jarReturns, setJarReturns] = useState<JarReturn[]>(initialJarReturns);
   const [referrals] = useState<Referral[]>(initialReferrals);
+  const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>(initialStockAdjustments);
   
   // Lazy state initializers to avoid state settings inside effects
   const [sentNudgeIds, setSentNudgeIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         return JSON.parse(localStorage.getItem('nudge_sent_order_ids') || '[]');
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  const [activityFeed, setActivityFeed] = useState<{ id: string; text: string; timestamp: string }[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedLogs = localStorage.getItem('achar_admin_activity_log');
-        if (savedLogs) return JSON.parse(savedLogs);
       } catch {
         return [];
       }
@@ -217,6 +222,12 @@ export default function AdminClient({
   if (initialJarReturns !== prevJarReturns) {
     setPrevJarReturns(initialJarReturns);
     setJarReturns(initialJarReturns);
+  }
+
+  const [prevStockAdjustments, setPrevStockAdjustments] = useState<StockAdjustment[]>(initialStockAdjustments);
+  if (initialStockAdjustments !== prevStockAdjustments) {
+    setPrevStockAdjustments(initialStockAdjustments);
+    setStockAdjustments(initialStockAdjustments);
   }
 
   // Fetch kitchen targets on mount
@@ -267,12 +278,12 @@ export default function AdminClient({
       referrals={referrals}
       sentNudgeIds={sentNudgeIds}
       setSentNudgeIds={setSentNudgeIds}
-      activityFeed={activityFeed}
-      setActivityFeed={setActivityFeed}
       isWhatsAppAlertConfigured={isWhatsAppAlertConfigured}
       onLogout={handleLogout}
       kitchenTargets={kitchenTargets}
       setKitchenTargets={setKitchenTargets}
+      stockAdjustments={stockAdjustments}
+      setStockAdjustments={setStockAdjustments}
     />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Order, Product, FestivalAlert, Referral, KitchenTarget } from '../AdminClient';
+import { Order, Product, FestivalAlert, Referral, KitchenTarget, Subscription, StockAdjustment } from '../AdminClient';
 import { TabType } from './AdminShell';
 
 interface OverviewTabProps {
@@ -11,6 +11,8 @@ interface OverviewTabProps {
   kitchenTargets: KitchenTarget[];
   setActiveTab: (tab: TabType) => void;
   setAlerts: React.Dispatch<React.SetStateAction<FestivalAlert[]>>;
+  subscriptions: Subscription[];
+  stockAdjustments: StockAdjustment[];
 }
 
 export default function OverviewTab({
@@ -20,7 +22,9 @@ export default function OverviewTab({
   referrals,
   kitchenTargets,
   setActiveTab,
-  setAlerts
+  setAlerts,
+  subscriptions,
+  stockAdjustments
 }: OverviewTabProps) {
 
   // Daily statistics
@@ -32,14 +36,69 @@ export default function OverviewTab({
   
   const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
   const pendingTargets = kitchenTargets.filter(t => t.status !== 'packed');
-  
+
+  // Revenue analytics
+  const codOrders = orders.filter(o => o.paymentMethod === 'COD');
+  const codRevenueTotal = codOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const deliveredOrders = orders.filter(o => o.status === 'DELIVERED');
+  const deliveredRevenue = deliveredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const pendingOrders = orders.filter(o => ['NEW', 'CONFIRMED', 'PACKED', 'DISPATCHED'].includes(o.status));
+  const pendingRevenue = pendingOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const aov = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+  // Repeat customers
+  const customerOrders: Record<string, number> = {};
+  orders.forEach(o => {
+    customerOrders[o.phone] = (customerOrders[o.phone] || 0) + 1;
+  });
+  const totalUniqueCustomers = Object.keys(customerOrders).length;
+  const repeatCustomers = Object.values(customerOrders).filter(count => count > 1).length;
+  const repeatCustomerRate = totalUniqueCustomers > 0 ? (repeatCustomers / totalUniqueCustomers) * 100 : 0;
+
+  // Referral sales contribution
+  const referredOrders = orders.filter(o => o.referralCode);
+  const referralRevenue = referredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const referralShare = totalRevenue > 0 ? (referralRevenue / totalRevenue) * 100 : 0;
+
+  // Subscriptions recurring revenue (MRR) projection (assuming ₹180 average per jar)
+  const activeSubscriptions = subscriptions.filter(s => s.isActive);
+  const totalActiveSubJars = activeSubscriptions.reduce((sum, s) => sum + s.planJars, 0);
+  const projectedMRR = totalActiveSubJars * 180;
+
+  // 7-day sales comparison trend
+  const now = new Date();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const startOfLast7Days = new Date(now.getTime() - 7 * oneDayMs);
+  const startOfPrev7Days = new Date(now.getTime() - 14 * oneDayMs);
+
+  const salesLast7Days = orders
+    .filter(o => {
+      const d = new Date(o.createdAt);
+      return d >= startOfLast7Days && d <= now;
+    })
+    .reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const salesPrev7Days = orders
+    .filter(o => {
+      const d = new Date(o.createdAt);
+      return d >= startOfPrev7Days && d < startOfLast7Days;
+    })
+    .reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const trendPercentage = salesPrev7Days > 0 
+    ? ((salesLast7Days - salesPrev7Days) / salesPrev7Days) * 100
+    : 0;
+
   // Order funnel counts
   const countByStatus = (status: string) => orders.filter(o => o.status === status).length;
   const newOrders = countByStatus('NEW');
   const confirmedOrders = countByStatus('CONFIRMED');
   const packedOrders = countByStatus('PACKED');
   const dispatchedOrders = countByStatus('DISPATCHED');
-  const deliveredOrders = countByStatus('DELIVERED');
+  const deliveredOrdersCount = countByStatus('DELIVERED');
 
   // Low stock list
   const lowStockProducts = products.filter(p => p.stockCount < 10);
@@ -130,7 +189,7 @@ export default function OverviewTab({
           <div className="admin-metric-icon">₹</div>
           <div className="admin-metric-info">
             <div className="admin-metric-val">₹{totalRevenue.toLocaleString('en-IN')}</div>
-            <div className="admin-metric-lbl">Total Sales (COD)</div>
+            <div className="admin-metric-lbl">Total Sales (All Time)</div>
           </div>
         </div>
 
@@ -138,7 +197,116 @@ export default function OverviewTab({
           <div className="admin-metric-icon">🥣</div>
           <div className="admin-metric-info">
             <div className="admin-metric-val">{pendingTargets.length}</div>
-            <div className="admin-metric-lbl">Prep Targets Left</div>
+            <div className="admin-metric-lbl">Kitchen Targets Left</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics & Owner Insights Dashboard */}
+      <h3 className="admin-sec-title" style={{ marginTop: '36px', marginBottom: '16px' }}>📊 Business Analytics & Owner Insights</h3>
+      <div className="admin-grid-3" style={{ marginBottom: '36px' }}>
+        {/* Revenue Health split card */}
+        <div className="admin-premium-card" style={{ margin: 0 }}>
+          <div className="admin-card-header-lux">
+            <span className="admin-card-subtitle-lux">Revenue Health</span>
+            <h4 className="admin-card-title-lux" style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Cash & Status Flow</h4>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+              <span>🛵 Cash on Delivery (COD)</span>
+              <strong>₹{codRevenueTotal.toLocaleString('en-IN')}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: 'var(--admin-success)' }}>
+              <span>Delivered Revenue</span>
+              <strong>₹{deliveredRevenue.toLocaleString('en-IN')}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#B57C1E' }}>
+              <span>Pending in Transit</span>
+              <strong>₹{pendingRevenue.toLocaleString('en-IN')}</strong>
+            </div>
+            <div style={{ 
+              marginTop: '8px', 
+              height: '6px', 
+              borderRadius: '3px', 
+              backgroundColor: 'var(--admin-border)',
+              overflow: 'hidden',
+              display: 'flex'
+            }}>
+              <div style={{ 
+                width: `${totalRevenue > 0 ? (deliveredRevenue / totalRevenue) * 100 : 0}%`, 
+                backgroundColor: 'var(--admin-success)' 
+              }} />
+              <div style={{ 
+                width: `${totalRevenue > 0 ? (pendingRevenue / totalRevenue) * 100 : 0}%`, 
+                backgroundColor: '#B57C1E' 
+              }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Sales Trend & AOV card */}
+        <div className="admin-premium-card" style={{ margin: 0 }}>
+          <div className="admin-card-header-lux">
+            <span className="admin-card-subtitle-lux">Order Values & Trends</span>
+            <h4 className="admin-card-title-lux" style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Performance Comparison</h4>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+              <span>🛍️ Average Order Value (AOV)</span>
+              <strong>₹{Math.round(aov).toLocaleString('en-IN')}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+              <span>Sales (Last 7 Days)</span>
+              <strong>₹{salesLast7Days.toLocaleString('en-IN')}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', alignItems: 'center' }}>
+              <span>Weekly Growth</span>
+              {trendPercentage >= 0 ? (
+                <span style={{ 
+                  color: 'var(--admin-success)', 
+                  fontWeight: '700', 
+                  backgroundColor: 'var(--admin-success-light)', 
+                  padding: '2px 8px', 
+                  borderRadius: '3px',
+                  fontSize: '0.85rem'
+                }}>
+                  ▲ +{trendPercentage.toFixed(1)}%
+                </span>
+              ) : (
+                <span style={{ 
+                  color: 'var(--admin-maroon)', 
+                  fontWeight: '700', 
+                  backgroundColor: 'var(--admin-maroon-light)', 
+                  padding: '2px 8px', 
+                  borderRadius: '3px',
+                  fontSize: '0.85rem'
+                }}>
+                  ▼ {trendPercentage.toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Loyalty & Subscriptions card */}
+        <div className="admin-premium-card" style={{ margin: 0 }}>
+          <div className="admin-card-header-lux">
+            <span className="admin-card-subtitle-lux">Retention & Loyalty</span>
+            <h4 className="admin-card-title-lux" style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Referrals & Subscription</h4>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+              <span>🔄 Repeat Customer Rate</span>
+              <strong>{repeatCustomerRate.toFixed(1)}%</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+              <span>🔗 Referral Contribution</span>
+              <strong>₹{referralRevenue.toLocaleString('en-IN')} <span style={{ fontSize: '0.8rem', color: 'var(--admin-muted)' }}>({referralShare.toFixed(0)}%)</span></strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: 'var(--admin-maroon)' }}>
+              <span>📬 Projected Subscriptions MRR</span>
+              <strong>₹{projectedMRR.toLocaleString('en-IN')}</strong>
+            </div>
           </div>
         </div>
       </div>
@@ -171,7 +339,7 @@ export default function OverviewTab({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', backgroundColor: 'var(--admin-success-light)' }}>
               <span style={{ color: 'var(--admin-success)', fontWeight: '600' }}>✅ Total Delivered Orders</span>
-              <strong style={{ color: 'var(--admin-success)' }}>{deliveredOrders} orders</strong>
+              <strong style={{ color: 'var(--admin-success)' }}>{deliveredOrdersCount} orders</strong>
             </div>
           </div>
         </div>

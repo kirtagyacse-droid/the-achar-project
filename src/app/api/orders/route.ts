@@ -102,13 +102,27 @@ export async function POST(req: Request) {
         });
         if (prod) {
           const newCount = Math.max(0, prod.stockCount - item.quantity);
-          await prisma.product.update({
-            where: { id: item.productId },
-            data: {
-              stockCount: newCount,
-              stockStatus: newCount === 0 ? 'OUT_OF_STOCK' : prod.stockStatus
-            }
-          });
+          const diff = newCount - prod.stockCount;
+          if (diff !== 0) {
+            await prisma.$transaction([
+              prisma.product.update({
+                where: { id: item.productId },
+                data: {
+                  stockCount: newCount,
+                  stockStatus: newCount === 0 ? 'OUT_OF_STOCK' : prod.stockStatus
+                }
+              }),
+              prisma.stockAdjustment.create({
+                data: {
+                  productId: item.productId,
+                  productName: prod.name,
+                  quantity: diff,
+                  reason: 'sale',
+                  notes: `Auto-deducted for Order #${order.id.substring(0, 8).toUpperCase()}`
+                }
+              })
+            ]);
+          }
         }
       }
     } catch (stockError) {

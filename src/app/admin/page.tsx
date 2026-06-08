@@ -72,6 +72,11 @@ export default async function AdminDashboard() {
     orderBy: { createdAt: 'desc' }
   });
 
+  const stockAdjustments = await prisma.stockAdjustment.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50
+  });
+
   const isWhatsAppAlertConfigured = !!process.env.CALLMEBOT_API_KEY;
 
   return (
@@ -88,6 +93,7 @@ export default async function AdminDashboard() {
         initialPassports={JSON.parse(JSON.stringify(passports))}
         initialJarReturns={JSON.parse(JSON.stringify(jarReturns))}
         initialReferrals={JSON.parse(JSON.stringify(referrals))}
+        initialStockAdjustments={JSON.parse(JSON.stringify(stockAdjustments))}
         isWhatsAppAlertConfigured={isWhatsAppAlertConfigured}
       />
     </div>

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
 import { put } from '@vercel/blob';
 
 export async function POST(
@@ -9,13 +8,6 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
@@ -44,8 +36,10 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, order: updatedOrder });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Failed to upload dispatch photo' }, { status: 500 });
+  } catch (error) {
+    console.error('Error uploading dispatch photo:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to upload dispatch photo';
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
 
@@ -55,12 +49,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
 
     // Remove photo from order
     const updatedOrder = await prisma.order.update({
@@ -76,7 +64,9 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true, order: updatedOrder });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Failed to remove dispatch photo' }, { status: 500 });
+  } catch (error) {
+    console.error('Error removing dispatch photo:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to remove dispatch photo';
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

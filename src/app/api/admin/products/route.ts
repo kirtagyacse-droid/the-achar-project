@@ -1,36 +1,52 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword || !token || token !== adminPassword) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { name, description, price, imageUrl, category, stockStatus, stockCount } = await req.json();
+    const { name, description, price, imageUrl, category, stockStatus, stockCount, batchNumber } = await req.json();
 
     if (!name || !description || price === undefined) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        imageUrl: imageUrl || '/placeholder.png',
-        category: category || 'Pickle',
-        stockStatus: stockStatus || 'IN_STOCK',
-        stockCount: parseInt(stockCount) || 0
+    const initialStock = parseInt(stockCount, 10) || 0;
+
+    // Use transaction to create product and log initial stock count
+    const product = await prisma.$transaction(async (tx) => {
+      const prod = await tx.product.create({
+        data: {
+          name,
+          description,
+          price: parseFloat(price),
+          imageUrl: imageUrl || '/placeholder.png',
+          category: category || 'Pickle',
+          stockStatus: stockStatus || (initialStock > 0 ? 'IN_STOCK' : 'OUT_OF_STOCK'),
+          stockCount: initialStock,
+          batchNumber: batchNumber || null,
+          batchDate: batchNumber ? new Date() : null
+        }
+      });
+
+      if (initialStock > 0) {
+        await tx.stockAdjustment.create({
+          data: {
+            productId: prod.id,
+            productName: prod.name,
+            quantity: initialStock,
+            reason: 'manual_audit',
+            notes: 'Initial product stock count',
+            batchNumber: batchNumber || null
+          }
+        });
       }
+
+      return prod;
     });
 
     return NextResponse.json({ success: true, product });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Failed to create product' }, { status: 500 });
+  } catch (error) {
+    console.error('Error creating product:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to create product';
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

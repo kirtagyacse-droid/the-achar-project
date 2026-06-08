@@ -21,7 +21,8 @@ import {
   Subscription, 
   PicklePassport, 
   JarReturn, 
-  Referral 
+  Referral,
+  StockAdjustment
 } from '../AdminClient';
 
 interface AdminShellProps {
@@ -40,12 +41,12 @@ interface AdminShellProps {
   referrals: Referral[];
   sentNudgeIds: string[];
   setSentNudgeIds: React.Dispatch<React.SetStateAction<string[]>>;
-  activityFeed: { id: string; text: string; timestamp: string }[];
-  setActivityFeed: React.Dispatch<React.SetStateAction<{ id: string; text: string; timestamp: string }[]>>;
   isWhatsAppAlertConfigured: boolean;
   onLogout: () => void;
   kitchenTargets: KitchenTarget[];
   setKitchenTargets: React.Dispatch<React.SetStateAction<KitchenTarget[]>>;
+  stockAdjustments: StockAdjustment[];
+  setStockAdjustments: React.Dispatch<React.SetStateAction<StockAdjustment[]>>;
 }
 
 export type TabType = 
@@ -77,12 +78,12 @@ export default function AdminShell({
   referrals,
   sentNudgeIds,
   setSentNudgeIds,
-  activityFeed,
-  setActivityFeed,
   isWhatsAppAlertConfigured,
   onLogout,
   kitchenTargets,
-  setKitchenTargets
+  setKitchenTargets,
+  stockAdjustments,
+  setStockAdjustments
 }: AdminShellProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
@@ -118,6 +119,8 @@ export default function AdminShell({
             kitchenTargets={kitchenTargets}
             setActiveTab={setActiveTab}
             setAlerts={setAlerts}
+            subscriptions={subscriptions}
+            stockAdjustments={stockAdjustments}
           />
         );
       case 'orders':
@@ -142,8 +145,9 @@ export default function AdminShell({
           <InventoryTab
             products={products}
             setProducts={setProducts}
-            activityFeed={activityFeed}
-            setActivityFeed={setActivityFeed}
+            stockAdjustments={stockAdjustments}
+            setStockAdjustments={setStockAdjustments}
+            orders={orders}
           />
         );
       case 'planner':
