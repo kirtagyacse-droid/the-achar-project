@@ -1,14 +1,27 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rateLimit';
+
+const referralGenerateSchema = z.object({
+  orderId: z.string().min(1, 'Order ID is required')
+});
+
 export async function POST(req: Request) {
+  // Rate limiting: 5 generations per hour per IP
+  const limitRes = await applyRateLimit('referral-generate', 5, 60 * 60 * 1000);
+  if (limitRes) return limitRes;
+
   try {
     const body = await req.json();
-    const { orderId } = body;
+    const result = referralGenerateSchema.safeParse(body);
 
-    if (!orderId) {
-      return NextResponse.json({ message: 'Order ID is required' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ message: result.error.issues[0].message }, { status: 400 });
     }
+
+    const { orderId } = result.data;
 
     const order = await prisma.order.findUnique({
       where: { id: orderId }

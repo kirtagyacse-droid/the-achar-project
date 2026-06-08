@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rateLimit';
+
+const discountValidateSchema = z.object({
+  code: z.string().min(1, 'Discount code is required'),
+  phone: z.string().optional()
+});
+
 export async function POST(req: Request) {
+  // Rate limiting: 30 validations per hour per IP
+  const limitRes = await applyRateLimit('discount-validate', 30, 60 * 60 * 1000);
+  if (limitRes) return limitRes;
+
   try {
     const body = await req.json();
-    const { code, phone } = body;
+    const result = discountValidateSchema.safeParse(body);
 
-    if (!code) {
-      return NextResponse.json({ valid: false, message: 'Discount code is required' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ valid: false, message: result.error.issues[0].message }, { status: 400 });
     }
+
+    const { code, phone } = result.data;
 
     const uppercaseCode = code.toUpperCase().trim();
 

@@ -62,6 +62,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.cos
 import kotlin.math.sin
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 // --- Data Models ---
 data class FlavorProfile(
@@ -359,10 +362,17 @@ fun NativeAppLayout() {
     var showDevDialog by remember { mutableStateOf(false) }
     var adminTapCount by remember { mutableStateOf(0) }
     var showAdminLoginDialog by remember { mutableStateOf(false) }
-    var isAdminLoggedIn by remember { mutableStateOf(false) }
+    var isAdminLoggedIn by remember { mutableStateOf(AuthManager.hasRefreshToken(context)) }
     var isGiftOrder by remember { mutableStateOf(false) }
     var giftWrapType by remember { mutableStateOf("cloth") } // "cloth" or "wood"
     var giftMessageText by remember { mutableStateOf("") }
+    
+    LaunchedEffect(Unit) {
+        NetworkClient.onSessionExpired = {
+            isAdminLoggedIn = false
+            currentScreen = Screen.Catalog
+        }
+    }
     
     // Product Catalog State
     var productsList by remember { mutableStateOf<List<Product>>(emptyList()) }
@@ -447,7 +457,11 @@ fun NativeAppLayout() {
                             ) {
                                 adminTapCount++
                                 if (adminTapCount >= 5) {
-                                    showAdminLoginDialog = true
+                                    if (isAdminLoggedIn) {
+                                        currentScreen = Screen.Admin
+                                    } else {
+                                        showAdminLoginDialog = true
+                                    }
                                     adminTapCount = 0
                                 }
                             }
@@ -600,7 +614,15 @@ fun NativeAppLayout() {
                 Screen.Passport -> PassportScreen(productsList)
                 Screen.Returns -> ReturnsScreen(apiBaseUrl, isOfflineMode)
                 Screen.Diary -> DiaryScreen()
-                Screen.Admin -> AdminScreen(apiBaseUrl = apiBaseUrl, onBack = { currentScreen = Screen.Catalog })
+                Screen.Admin -> AdminScreen(
+                    apiBaseUrl = apiBaseUrl,
+                    onBack = { currentScreen = Screen.Catalog },
+                    onLogout = {
+                        AuthManager.clearTokens(context)
+                        isAdminLoggedIn = false
+                        currentScreen = Screen.Catalog
+                    }
+                )
             }
         }
     }
@@ -682,9 +704,10 @@ fun NativeAppLayout() {
     if (showAdminLoginDialog) {
         var inputPassword by remember { mutableStateOf("") }
         var isError by remember { mutableStateOf(false) }
+        var loginInProgress by remember { mutableStateOf(false) }
         
         AlertDialog(
-            onDismissRequest = { showAdminLoginDialog = false },
+            onDismissRequest = { if (!loginInProgress) showAdminLoginDialog = false },
             title = { Text("Admin Authorization", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
@@ -695,6 +718,7 @@ fun NativeAppLayout() {
                         onValueChange = { inputPassword = it; isError = false },
                         label = { Text("Password") },
                         singleLine = true,
+                        enabled = !loginInProgress,
                         visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                         isError = isError,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -710,21 +734,39 @@ fun NativeAppLayout() {
             },
             confirmButton = {
                 TextButton(
+                    enabled = !loginInProgress,
                     onClick = {
-                        if (inputPassword == "achar-admin") {
-                            showAdminLoginDialog = false
-                            isAdminLoggedIn = true
-                            currentScreen = Screen.Admin
-                        } else {
-                            isError = true
-                        }
+                        loginInProgress = true
+                        performAdminLogin(
+                            context = context,
+                            apiBaseUrl = apiBaseUrl,
+                            password = inputPassword,
+                            onSuccess = {
+                                loginInProgress = false
+                                showAdminLoginDialog = false
+                                isAdminLoggedIn = true
+                                currentScreen = Screen.Admin
+                            },
+                            onError = { err ->
+                                loginInProgress = false
+                                isError = true
+                            }
+                        )
                     }
                 ) {
-                    Text("Authorize", color = Color(0xFF9A2C2C), fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (loginInProgress) "Authorizing..." else "Authorize",
+                        color = Color(0xFF9A2C2C),
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAdminLoginDialog = false }) {
+                TextButton(
+                    enabled = !loginInProgress,
+                    onClick = { showAdminLoginDialog = false }
+                ) {
                     Text("Cancel", color = Color(0xFF666666), fontFamily = FontFamily.Serif)
                 }
             },
@@ -3216,27 +3258,54 @@ fun DiaryScreen() {
 }
 
 // --- Admin Section Helpers ---
-// --- Shared admin auth helper: POSTs to /api/admin/login and returns the session cookie string ---
-fun getAdminCookie(apiBaseUrl: String): String {
-    val loginUrl = URL("$apiBaseUrl/api/admin/login")
-    val loginConn = loginUrl.openConnection() as HttpURLConnection
-    loginConn.requestMethod = "POST"
-    loginConn.setRequestProperty("Content-Type", "application/json")
-    loginConn.doOutput = true
-    loginConn.connectTimeout = 10000
-    loginConn.readTimeout = 10000
-    val loginWriter = OutputStreamWriter(loginConn.outputStream)
-    loginWriter.write(JSONObject().apply { put("password", "achar-admin") }.toString())
-    loginWriter.flush()
-    loginWriter.close()
-    val code = loginConn.responseCode
-    if (code != 200) throw Exception("Admin auth failed: $code")
-    return loginConn.headerFields["Set-Cookie"]
-        ?.joinToString("; ") { it.split(";")[0] }
-        ?: throw Exception("No session cookie returned from login")
+fun performAdminLogin(
+    context: Context,
+    apiBaseUrl: String,
+    password: String,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    CoroutineScope(Dispatchers.Main).launch {
+        try {
+            val result = withContext(Dispatchers.IO) {
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val json = JSONObject().apply {
+                    put("password", password)
+                }
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/login")
+                    .post(json.toString().toRequestBody(mediaType))
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    val bodyStr = response.body?.string()
+                    if (response.isSuccessful && bodyStr != null) {
+                        val obj = JSONObject(bodyStr)
+                        val success = obj.optBoolean("success", false)
+                        if (success) {
+                            val accessToken = obj.getString("accessToken")
+                            val refreshToken = obj.getString("refreshToken")
+                            AuthManager.saveTokens(context, accessToken, refreshToken)
+                            true
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            }
+            if (result) onSuccess() else onError("Invalid password")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onError(e.message ?: "Network error")
+        }
+    }
 }
 
 fun loadDashboardData(
+    context: Context,
     apiBaseUrl: String,
     onSuccess: (JSONObject) -> Unit,
     onError: (String) -> Unit
@@ -3244,47 +3313,18 @@ fun loadDashboardData(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val result = withContext(Dispatchers.IO) {
-                // Step 1: POST to /api/admin/login to obtain the httpOnly session cookie
-                val loginUrl = URL("$apiBaseUrl/api/admin/login")
-                val loginConn = loginUrl.openConnection() as HttpURLConnection
-                loginConn.requestMethod = "POST"
-                loginConn.setRequestProperty("Content-Type", "application/json")
-                loginConn.doOutput = true
-                loginConn.connectTimeout = 10000
-                loginConn.readTimeout = 10000
-                val loginBody = JSONObject().apply { put("password", "achar-admin") }
-                val loginWriter = OutputStreamWriter(loginConn.outputStream)
-                loginWriter.write(loginBody.toString())
-                loginWriter.flush()
-                loginWriter.close()
-                val loginCode = loginConn.responseCode
-                if (loginCode != 200) throw Exception("Auth failed: $loginCode")
-                // Extract Set-Cookie header
-                val setCookie = loginConn.headerFields["Set-Cookie"]
-                    ?.joinToString("; ") { it.split(";")[0] }
-                    ?: throw Exception("No session cookie returned")
-
-                // Step 2: GET the dashboard using the session cookie
-                val dashUrl = URL("$apiBaseUrl/api/admin/dashboard")
-                val dashConn = dashUrl.openConnection() as HttpURLConnection
-                dashConn.requestMethod = "GET"
-                dashConn.setRequestProperty("Cookie", setCookie)
-                dashConn.connectTimeout = 10000
-                dashConn.readTimeout = 10000
-                val code = dashConn.responseCode
-                if (code == 200) {
-                    val reader = BufferedReader(InputStreamReader(dashConn.inputStream))
-                    val sb = StringBuilder()
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) { sb.append(line) }
-                    reader.close()
-                    JSONObject(sb.toString())
-                } else {
-                    val errReader = BufferedReader(InputStreamReader(dashConn.errorStream ?: dashConn.inputStream))
-                    val errSb = StringBuilder()
-                    var errLine: String?
-                    while (errReader.readLine().also { errLine = it } != null) { errSb.append(errLine) }
-                    throw Exception("Server returned code $code: $errSb")
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/dashboard")
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val bodyStr = response.body?.string()
+                    if (response.isSuccessful && bodyStr != null) {
+                        JSONObject(bodyStr)
+                      } else {
+                          throw Exception("Failed with status: ${response.code}")
+                      }
                 }
             }
             onSuccess(result)
@@ -3296,6 +3336,7 @@ fun loadDashboardData(
 }
 
 fun updateOrderStatus(
+    context: Context,
     apiBaseUrl: String,
     orderId: String,
     newStatus: String,
@@ -3305,21 +3346,16 @@ fun updateOrderStatus(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val success = withContext(Dispatchers.IO) {
-                val cookie = getAdminCookie(apiBaseUrl)
-                val url = URL("$apiBaseUrl/api/admin/orders/$orderId")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "PATCH"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Cookie", cookie)
-                connection.doOutput = true
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
-                val body = JSONObject().apply { put("status", newStatus) }
-                val writer = OutputStreamWriter(connection.outputStream)
-                writer.write(body.toString())
-                writer.flush()
-                writer.close()
-                connection.responseCode == 200
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val json = JSONObject().apply { put("status", newStatus) }
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/orders/$orderId")
+                    .patch(json.toString().toRequestBody(mediaType))
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
             }
             if (success) onSuccess() else onError("Failed to update status")
         } catch (e: Exception) {
@@ -3330,6 +3366,7 @@ fun updateOrderStatus(
 }
 
 fun claimPassport(
+    context: Context,
     apiBaseUrl: String,
     phone: String,
     onSuccess: () -> Unit,
@@ -3338,21 +3375,16 @@ fun claimPassport(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val success = withContext(Dispatchers.IO) {
-                val cookie = getAdminCookie(apiBaseUrl)
-                val url = URL("$apiBaseUrl/api/admin/claim-passport")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Cookie", cookie)
-                connection.doOutput = true
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
-                val body = JSONObject().apply { put("phone", phone) }
-                val writer = OutputStreamWriter(connection.outputStream)
-                writer.write(body.toString())
-                writer.flush()
-                writer.close()
-                connection.responseCode == 200
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val json = JSONObject().apply { put("phone", phone) }
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/claim-passport")
+                    .post(json.toString().toRequestBody(mediaType))
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
             }
             if (success) onSuccess() else onError("Failed to claim passport")
         } catch (e: Exception) {
@@ -3363,6 +3395,7 @@ fun claimPassport(
 }
 
 fun upsertProduct(
+    context: Context,
     apiBaseUrl: String,
     productId: String?,
     productData: JSONObject,
@@ -3372,21 +3405,19 @@ fun upsertProduct(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val success = withContext(Dispatchers.IO) {
-                val cookie = getAdminCookie(apiBaseUrl)
-                val url = if (productId == null) URL("$apiBaseUrl/api/admin/products")
-                           else URL("$apiBaseUrl/api/admin/products/$productId")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = if (productId == null) "POST" else "PATCH"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Cookie", cookie)
-                connection.doOutput = true
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
-                val writer = OutputStreamWriter(connection.outputStream)
-                writer.write(productData.toString())
-                writer.flush()
-                writer.close()
-                connection.responseCode == 200 || connection.responseCode == 201
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val url = if (productId == null) "$apiBaseUrl/api/admin/products"
+                           else "$apiBaseUrl/api/admin/products/$productId"
+                val requestBuilder = Request.Builder().url(url)
+                if (productId == null) {
+                    requestBuilder.post(productData.toString().toRequestBody(mediaType))
+                } else {
+                    requestBuilder.patch(productData.toString().toRequestBody(mediaType))
+                }
+                client.newCall(requestBuilder.build()).execute().use { response ->
+                    response.isSuccessful
+                }
             }
             if (success) onSuccess() else onError("Failed to submit product data")
         } catch (e: Exception) {
@@ -3397,6 +3428,7 @@ fun upsertProduct(
 }
 
 fun deleteProduct(
+    context: Context,
     apiBaseUrl: String,
     productId: String,
     onSuccess: () -> Unit,
@@ -3405,14 +3437,14 @@ fun deleteProduct(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val success = withContext(Dispatchers.IO) {
-                val cookie = getAdminCookie(apiBaseUrl)
-                val url = URL("$apiBaseUrl/api/admin/products/$productId")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "DELETE"
-                connection.setRequestProperty("Cookie", cookie)
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
-                connection.responseCode == 200
+                val client = NetworkClient.getClient(context, apiBaseUrl)
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/products/$productId")
+                    .delete()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
             }
             if (success) onSuccess() else onError("Failed to delete product")
         } catch (e: Exception) {
@@ -3433,25 +3465,12 @@ fun uploadDispatchPhoto(
     CoroutineScope(Dispatchers.Main).launch {
         try {
             val result = withContext(Dispatchers.IO) {
-                val cookie = getAdminCookie(apiBaseUrl)
-                val boundary = "Boundary-${System.currentTimeMillis()}"
-                val lineEnd = "\r\n"
-                val twoHyphens = "--"
-                
-                val url = URL("$apiBaseUrl/api/admin/orders/$orderId/dispatch-photo")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.doOutput = true
-                connection.setRequestProperty("Connection", "Keep-Alive")
-                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-                connection.setRequestProperty("Cookie", cookie)
-                connection.connectTimeout = 15000
-                connection.readTimeout = 15000
-                
-                val outputStream = DataOutputStream(connection.outputStream)
+                val client = NetworkClient.getClient(context, apiBaseUrl)
                 
                 val contentResolver = context.contentResolver
                 val inputStream = contentResolver.openInputStream(imageUri) ?: throw Exception("Failed to open stream")
+                val bytes = inputStream.readBytes()
+                inputStream.close()
                 
                 var fileName = "photo.jpg"
                 val cursor = contentResolver.query(imageUri, null, null, null, null)
@@ -3463,24 +3482,21 @@ fun uploadDispatchPhoto(
                         }
                     }
                 }
-                
-                outputStream.writeBytes(twoHyphens + boundary + lineEnd)
-                outputStream.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"$fileName\"$lineEnd")
-                outputStream.writeBytes("Content-Type: image/jpeg$lineEnd$lineEnd")
-                
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
+
+                val mediaType = "image/jpeg".toMediaType()
+                val requestBody = okhttp3.MultipartBody.Builder()
+                    .setType(okhttp3.MultipartBody.FORM)
+                    .addFormDataPart("file", fileName, bytes.toRequestBody(mediaType))
+                    .build()
+                    
+                val request = Request.Builder()
+                    .url("$apiBaseUrl/api/admin/orders/$orderId/dispatch-photo")
+                    .post(requestBody)
+                    .build()
+                    
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
                 }
-                inputStream.close()
-                
-                outputStream.writeBytes(lineEnd)
-                outputStream.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd)
-                outputStream.flush()
-                outputStream.close()
-                
-                connection.responseCode == 200
             }
             if (result) onSuccess() else onError("Failed to upload photo")
         } catch (e: Exception) {
@@ -3494,7 +3510,8 @@ fun uploadDispatchPhoto(
 @Composable
 fun AdminScreen(
     apiBaseUrl: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     var selectedTab by remember { mutableStateOf("orders") }
@@ -3522,7 +3539,7 @@ fun AdminScreen(
     val reload = {
         isLoading = true
         errorMessage = null
-        loadDashboardData(apiBaseUrl, onSuccess = { data ->
+        loadDashboardData(context, apiBaseUrl, onSuccess = { data ->
             ordersList = data.optJSONArray("orders")
             productsList = data.optJSONArray("products")
             subscriptionsList = data.optJSONArray("subscriptions")
@@ -3587,6 +3604,10 @@ fun AdminScreen(
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = { reload() }) {
                 Text("🔄", fontSize = 18.sp)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = onLogout) {
+                Text("🚪", fontSize = 18.sp)
             }
         }
 
@@ -3772,7 +3793,7 @@ fun AdminScreen(
                                                 Button(
                                                     onClick = {
                                                         isLoading = true
-                                                        updateOrderStatus(apiBaseUrl, orderId, opt, onSuccess = {
+                                                        updateOrderStatus(context, apiBaseUrl, orderId, opt, onSuccess = {
                                                             Toast.makeText(context, "Status updated to $opt", Toast.LENGTH_SHORT).show()
                                                             reload()
                                                         }, onError = { err ->
@@ -3867,7 +3888,7 @@ fun AdminScreen(
                                             Button(
                                                 onClick = {
                                                     isLoading = true
-                                                    deleteProduct(apiBaseUrl, id, onSuccess = {
+                                                    deleteProduct(context, apiBaseUrl, id, onSuccess = {
                                                         Toast.makeText(context, "$name deleted successfully!", Toast.LENGTH_SHORT).show()
                                                         reload()
                                                     }, onError = { err ->
@@ -3933,7 +3954,7 @@ fun AdminScreen(
                                             Button(
                                                 onClick = {
                                                     isLoading = true
-                                                    claimPassport(apiBaseUrl, phone, onSuccess = {
+                                                    claimPassport(context, apiBaseUrl, phone, onSuccess = {
                                                         Toast.makeText(context, "Free jar claimed!", Toast.LENGTH_SHORT).show()
                                                         reload()
                                                     }, onError = { err ->
@@ -4024,7 +4045,7 @@ fun AdminScreen(
                             put("stockStatus", stockStatus)
                             put("stockCount", stockCount.toIntOrNull() ?: 0)
                         }
-                        upsertProduct(apiBaseUrl, editingProductJson?.optString("id"), prodData, onSuccess = {
+                        upsertProduct(context, apiBaseUrl, editingProductJson?.optString("id"), prodData, onSuccess = {
                             Toast.makeText(context, "Product saved successfully!", Toast.LENGTH_SHORT).show()
                             reload()
                         }, onError = { err ->

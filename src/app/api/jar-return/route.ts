@@ -1,18 +1,36 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendAuntyNotification } from '@/lib/whatsapp';
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rateLimit';
+
+const jarReturnSchema = z.object({
+  customerName: z.string().min(1, 'Customer name is required'),
+  phone: z.string().min(10, 'Invalid phone number'),
+  jarCount: z.union([z.number(), z.string()]).transform((val) => {
+    const parsed = typeof val === 'string' ? parseInt(val, 10) : val;
+    if (isNaN(parsed)) throw new Error('Invalid jar count');
+    return parsed;
+  }),
+  notes: z.string().optional()
+});
 
 export async function POST(req: Request) {
+  // Rate limiting: 10 requests per hour per IP
+  const limitRes = await applyRateLimit('jar-return', 10, 60 * 60 * 1000);
+  if (limitRes) return limitRes;
+
   try {
     const body = await req.json();
-    const { customerName, phone, jarCount, notes } = body;
+    const result = jarReturnSchema.safeParse(body);
 
-    if (!customerName || !phone || !jarCount) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ message: result.error.issues[0].message }, { status: 400 });
     }
 
-    const count = parseInt(jarCount, 10);
-    if (isNaN(count) || count < 5) {
+    const { customerName, phone, jarCount, notes } = result.data;
+    const count = jarCount;
+    if (count < 5) {
       return NextResponse.json({ message: 'Minimum 5 jars are required for return program' }, { status: 400 });
     }
 

@@ -2,14 +2,28 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendAuntyNotification } from '@/lib/whatsapp';
 
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rateLimit';
+
+const passportStampSchema = z.object({
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  productId: z.string().min(1, 'Product ID is required')
+});
+
 export async function POST(req: Request) {
+  // Rate limiting: 20 stamp submissions per hour per IP
+  const limitRes = await applyRateLimit('passport-stamp', 20, 60 * 60 * 1000);
+  if (limitRes) return limitRes;
+
   try {
     const body = await req.json();
-    const { phone, productId } = body;
+    const result = passportStampSchema.safeParse(body);
 
-    if (!phone || !productId) {
-      return NextResponse.json({ message: 'Phone number and product ID are required' }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ message: result.error.issues[0].message }, { status: 400 });
     }
+
+    const { phone, productId } = result.data;
 
     // Find the passport
     const passport = await prisma.picklePassport.findUnique({
@@ -30,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     // Add stamp if not already present
-    let updatedStamps = [...passport.stamps];
+    const updatedStamps = [...passport.stamps];
     if (!updatedStamps.includes(productId)) {
       updatedStamps.push(productId);
     }

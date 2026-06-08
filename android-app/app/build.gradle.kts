@@ -84,4 +84,8 @@ dependencies {
 
   // Coil Image Loading
   implementation(libs.coil.compose)
+
+  // OkHttp and Security Crypto
+  implementation(libs.okhttp)
+  implementation(libs.androidx.security.crypto)
 }

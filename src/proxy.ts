@@ -1,26 +1,73 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyToken, signAccessToken } from './lib/auth';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const adminPassword = process.env.ADMIN_PASSWORD;
 
-  // 1. Guard API admin routes (except login endpoint)
-  if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login') {
-    const adminToken = request.cookies.get('admin_token')?.value;
-    if (!adminPassword || !adminToken || adminToken !== adminPassword) {
-      return new NextResponse(
-        JSON.stringify({ success: false, message: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+  // 1. Guard API admin routes (except login, refresh, logout)
+  if (
+    pathname.startsWith('/api/admin') &&
+    pathname !== '/api/admin/login' &&
+    pathname !== '/api/admin/refresh' &&
+    pathname !== '/api/admin/logout'
+  ) {
+    let accessToken = request.cookies.get('admin_access_token')?.value;
+    
+    // Support Bearer Token in Authorization header (for Android App)
+    if (!accessToken) {
+      const authHeader = request.headers.get('Authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        accessToken = authHeader.substring(7);
+      }
+    }
+
+    if (!accessToken) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = await verifyToken(accessToken);
+    if (!payload || payload.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
   // 2. Guard Admin Dashboard page routes (except login page)
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const adminToken = request.cookies.get('admin_token')?.value;
-    if (!adminPassword || !adminToken || adminToken !== adminPassword) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+    const accessToken = request.cookies.get('admin_access_token')?.value;
+    let valid = false;
+
+    if (accessToken) {
+      const payload = await verifyToken(accessToken);
+      if (payload && payload.role === 'admin') {
+        valid = true;
+      }
+    }
+
+    if (!valid) {
+      // Access token is missing or expired, attempt to refresh using the refresh token cookie
+      const refreshToken = request.cookies.get('admin_refresh_token')?.value;
+      if (refreshToken) {
+        const refreshPayload = await verifyToken(refreshToken);
+        if (refreshPayload && refreshPayload.role === 'admin') {
+          // Refresh token is valid! Re-issue a new access token
+          const newAccessToken = await signAccessToken({ role: 'admin' });
+          const response = NextResponse.next();
+          response.cookies.set('admin_access_token', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 15 * 60 // 15 minutes
+          });
+          return response;
+        }
+      }
+
+      // If refresh token is also invalid or missing, redirect to login page
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
 

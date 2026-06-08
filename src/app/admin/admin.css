@@ -1,0 +1,517 @@
+/* RS Savoury Premium Admin Business Operating System Stylesheet */
+
+:root {
+  --admin-sidebar-width: 260px;
+  --admin-maroon: #9A2C2C;
+  --admin-maroon-dark: #7B1C1C;
+  --admin-maroon-light: #FDF2F2;
+  --admin-cream: #FCF8F5;
+  --admin-border: #E5E5E5;
+  --admin-text: #2C2C2C;
+  --admin-muted: #71717A;
+  --admin-success: #15803D;
+  --admin-success-light: #F0FDF4;
+  --admin-warning: #B45309;
+  --admin-warning-light: #FEF3C7;
+  --admin-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --admin-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Layout Structure */
+.admin-container {
+  display: flex;
+  min-height: 80vh;
+  background-color: #FAFAFA;
+  border: 1px solid var(--admin-border);
+  position: relative;
+  font-family: 'Outfit', -apple-system, sans-serif;
+  color: var(--admin-text);
+}
+
+/* Sidebar Navigation */
+.admin-sidebar {
+  width: var(--admin-sidebar-width);
+  background-color: #FFFFFF;
+  border-right: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: var(--admin-transition);
+}
+
+.admin-sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-sidebar-logo {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--admin-maroon);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-sidebar-menu {
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.admin-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--admin-transition);
+  text-decoration: none;
+}
+
+.admin-menu-item:hover {
+  background-color: var(--admin-maroon-light);
+  color: var(--admin-maroon);
+}
+
+.admin-menu-item.active {
+  background-color: var(--admin-maroon);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.admin-menu-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 12px;
+  background-color: var(--admin-maroon-light);
+  color: var(--admin-maroon);
+}
+
+.admin-menu-item.active .admin-menu-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+/* Sidebar Footer */
+.admin-sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Main Content Area */
+.admin-content-viewport {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents layout blowout */
+  background-color: #FCFAF8;
+}
+
+.admin-topbar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--admin-border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.admin-topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+}
+
+.admin-topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--admin-success);
+}
+
+.admin-topbar-status::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--admin-success);
+  border-radius: 50%;
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.admin-logout-btn {
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.admin-logout-btn:hover {
+  border-color: var(--admin-maroon);
+  color: var(--admin-maroon);
+  background-color: var(--admin-maroon-light);
+}
+
+.admin-main-body {
+  padding: 32px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Premium Dashboard Widgets Grid */
+.admin-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.admin-premium-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--admin-border);
+  padding: 24px;
+  box-shadow: var(--admin-card-shadow);
+  transition: var(--admin-transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-premium-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  border-color: #DCDCDC;
+}
+
+.admin-card-header-lux {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--admin-border);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-card-title-lux {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-card-subtitle-lux {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-muted);
+  font-weight: 600;
+}
+
+/* Stat Widgets */
+.admin-metric-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--admin-border);
+  padding: 24px;
+  box-shadow: var(--admin-card-shadow);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: var(--admin-maroon-light);
+  color: var(--admin-maroon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.admin-metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-metric-val {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1.2;
+}
+
+.admin-metric-lbl {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* Overview Low Stock Notification */
+.admin-alert-banner {
+  background-color: var(--admin-maroon-light);
+  border: 1px solid rgba(154, 44, 44, 0.15);
+  color: var(--admin-maroon);
+  padding: 12px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Kitchen View Tablet Friendly Layout */
+.kitchen-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1px solid var(--admin-border);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.kitchen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.kitchen-card {
+  background-color: #FFFFFF;
+  border: 2px solid var(--admin-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: var(--admin-transition);
+}
+
+.kitchen-card.status-pending { border-left: 6px solid #9CA3AF; }
+.kitchen-card.status-in_progress { border-left: 6px solid var(--admin-warning); }
+.kitchen-card.status-ready { border-left: 6px solid #3B82F6; }
+.kitchen-card.status-packed { border-left: 6px solid var(--admin-success); }
+
+.kitchen-product-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.kitchen-stock-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  background-color: #F3F4F6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.kitchen-target-adjust {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kitchen-target-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--admin-muted);
+}
+
+.kitchen-adjust-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid var(--admin-border);
+  background-color: #F9FAFB;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: var(--admin-transition);
+}
+
+.kitchen-adjust-btn:active {
+  background-color: #E5E7EB;
+}
+
+.kitchen-quantity-input {
+  width: 70px;
+  height: 48px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+}
+
+.kitchen-notes-area {
+  width: 100%;
+  border: 1px solid var(--admin-border);
+  padding: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  background-color: #FAFAFA;
+}
+
+.kitchen-notes-area:focus {
+  background-color: #FFFFFF;
+  border-color: var(--admin-maroon);
+  outline: none;
+}
+
+.kitchen-status-select {
+  height: 44px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0 12px;
+  border: 1px solid var(--admin-border);
+  background-color: #FFFFFF;
+  width: 100%;
+}
+
+.kitchen-status-select.pending { color: #555555; background-color: #F3F4F6; }
+.kitchen-status-select.in_progress { color: var(--admin-warning); background-color: var(--admin-warning-light); }
+.kitchen-status-select.ready { color: #1D4ED8; background-color: #EFF6FF; }
+.kitchen-status-select.packed { color: var(--admin-success); background-color: var(--admin-success-light); }
+
+.kitchen-delete-btn {
+  background: transparent;
+  border: none;
+  color: #EF4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: auto;
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kitchen-delete-btn:hover {
+  text-decoration: underline;
+}
+
+/* Quick Target Adder Form */
+.kitchen-target-form {
+  background-color: #FFFFFF;
+  border: 2px dashed var(--admin-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* Quick Jump buttons */
+.kitchen-jump-link {
+  font-weight: 600;
+  color: var(--admin-maroon);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+/* Inventory Tab fuzzy stock style */
+.inventory-stock-log {
+  max-height: 250px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background-color: #F9F9FB;
+  border: 1px solid var(--admin-border);
+}
+
+.inventory-log-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background-color: #FFFFFF;
+  border: 1px solid #ECECEC;
+  font-size: 0.85rem;
+}
+
+/* Responsive sidebar behaviors */
+@media (max-width: 1024px) {
+  .admin-container {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .admin-sidebar-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+  .admin-menu-item {
+    padding: 8px 16px;
+    white-space: nowrap;
+  }
+  .admin-topbar {
+    padding: 16px;
+  }
+}
