@@ -11,10 +11,13 @@ export interface Product {
   stockStatus: string;
   stockCount: number;
   category: string;
+  spiciness?: number;
   createdAt: Date;
   updatedAt: Date;
   batchNumber?: string | null;
   batchDate?: string | Date | null;
+  plannerMinStock?: number;
+  plannerNotes?: string | null;
 }
 
 export interface OrderItem {
@@ -91,6 +94,23 @@ export interface Subscription {
   notes: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+  planName: string;
+  frequency: string;
+  spicePreference: string;
+  exclusions: string | null;
+  status: string;
+  dispatches?: SubscriptionDispatch[];
+}
+
+export interface SubscriptionDispatch {
+  id: string;
+  subscriptionId: string;
+  boxName: string;
+  status: string;
+  paymentMethod: string;
+  notes: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface PicklePassport {
@@ -167,7 +187,7 @@ export default function AdminClient({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [alerts, setAlerts] = useState<FestivalAlert[]>(initialAlerts);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [subscriptions] = useState<Subscription[]>(initialSubscriptions);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions);
   const [passports, setPassports] = useState<PicklePassport[]>(initialPassports);
   const [jarReturns, setJarReturns] = useState<JarReturn[]>(initialJarReturns);
   const [referrals] = useState<Referral[]>(initialReferrals);
@@ -272,6 +292,7 @@ export default function AdminClient({
       blogPosts={blogPosts}
       setBlogPosts={setBlogPosts}
       subscriptions={subscriptions}
+      setSubscriptions={setSubscriptions}
       passports={passports}
       setPassports={setPassports}
       jarReturns={jarReturns}

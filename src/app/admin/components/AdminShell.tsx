@@ -35,6 +35,7 @@ interface AdminShellProps {
   blogPosts: BlogPost[];
   setBlogPosts: React.Dispatch<React.SetStateAction<BlogPost[]>>;
   subscriptions: Subscription[];
+  setSubscriptions: React.Dispatch<React.SetStateAction<Subscription[]>>;
   passports: PicklePassport[];
   setPassports: React.Dispatch<React.SetStateAction<PicklePassport[]>>;
   jarReturns: JarReturn[];
@@ -72,6 +73,7 @@ export default function AdminShell({
   blogPosts,
   setBlogPosts,
   subscriptions,
+  setSubscriptions,
   passports,
   setPassports,
   jarReturns,
@@ -120,7 +122,7 @@ export default function AdminShell({
             setActiveTab={setActiveTab}
             setAlerts={setAlerts}
             subscriptions={subscriptions}
-            stockAdjustments={stockAdjustments}
+            _stockAdjustments={stockAdjustments}
           />
         );
       case 'orders':
@@ -154,7 +156,10 @@ export default function AdminShell({
         return (
           <PlannerTab
             products={products}
+            setProducts={setProducts}
             orders={orders}
+            subscriptions={subscriptions}
+            alerts={alerts}
             setActiveTab={setActiveTab}
           />
         );
@@ -173,6 +178,7 @@ export default function AdminShell({
         return (
           <SubscriptionsTab
             subscriptions={subscriptions}
+            setSubscriptions={setSubscriptions}
           />
         );
       case 'referrals':

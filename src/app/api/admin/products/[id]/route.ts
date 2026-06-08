@@ -16,6 +16,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       stockCount?: number;
       batchNumber?: string;
       batchDate?: Date;
+      plannerMinStock?: number;
+      plannerNotes?: string | null;
     } = {};
 
     if (data.name !== undefined) updateData.name = data.name;
@@ -26,6 +28,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (data.stockStatus !== undefined) updateData.stockStatus = data.stockStatus;
     if (data.batchNumber !== undefined) updateData.batchNumber = data.batchNumber;
     if (data.batchDate !== undefined) updateData.batchDate = data.batchDate ? new Date(data.batchDate) : undefined;
+    if (data.plannerMinStock !== undefined) updateData.plannerMinStock = parseInt(data.plannerMinStock, 10);
+    if (data.plannerNotes !== undefined) updateData.plannerNotes = data.plannerNotes;
 
     // Handle stock Count updates with logging
     if (data.stockCount !== undefined) {

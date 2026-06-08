@@ -7,6 +7,8 @@ function AdminLoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/admin';
@@ -15,6 +17,7 @@ function AdminLoginForm() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setShake(false);
     
     try {
       const res = await fetch('/api/admin/login', {
@@ -26,20 +29,85 @@ function AdminLoginForm() {
       const data = await res.json();
       
       if (res.ok && data.success) {
-        router.push(redirectUrl);
+        setSuccess(true);
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 1200);
       } else {
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
         setError(data.error || 'Invalid password');
         setLoading(false);
       }
     } catch {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
       setError('Connection failed. Please try again.');
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <div style={styles.container} className="card-entrance">
+        <div style={{ ...styles.card, borderColor: '#166534', boxShadow: '0 12px 30px rgba(22, 101, 52, 0.1)' }}>
+          <div style={{ textAlign: 'center', padding: '24px 0' }} className="success-pop-anim">
+            <div style={{ fontSize: '4.5rem', marginBottom: '20px' }} className="lock-unlock-anim">🔓</div>
+            <h2 style={{ fontFamily: 'Georgia, serif', color: '#166534', fontSize: '1.8rem', fontWeight: '700', margin: '0 0 8px 0' }}>
+              Access Granted
+            </h2>
+            <p style={{ color: '#166534', fontWeight: '700', fontSize: '0.8rem', margin: '0 0 24px 0', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              Welcome, Admin
+            </p>
+            <div style={{ 
+              margin: '0 auto', 
+              width: '28px', 
+              height: '28px', 
+              border: '3px solid rgba(22, 101, 52, 0.2)', 
+              borderTopColor: '#166534', 
+              borderRadius: '50%', 
+              animation: 'spin 0.8s linear infinite' 
+            }} />
+            <p style={{ color: '#71717A', fontSize: '0.82rem', marginTop: '16px', fontWeight: '500' }}>
+              Redirecting to dashboard...
+            </p>
+          </div>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+            @keyframes successPop {
+              0% { transform: scale(0.6); opacity: 0; }
+              50% { transform: scale(1.05); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes lockUnlock {
+              0% { transform: translateY(0) scale(1); }
+              50% { transform: translateY(-10px) scale(1.05); }
+              100% { transform: translateY(0) scale(1); }
+            }
+            .success-pop-anim {
+              animation: successPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            .lock-unlock-anim {
+              animation: lockUnlock 1s ease-in-out infinite;
+            }
+            .card-entrance {
+              animation: cardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            @keyframes cardEntrance {
+              from { opacity: 0; transform: translateY(30px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div style={styles.container} className="card-entrance">
+      <div style={styles.card} className={shake ? 'shake-anim' : ''}>
         <div style={styles.header}>
           <div style={styles.logoBadge}>🫙</div>
           <h1 style={styles.title}>RS Savoury</h1>
@@ -75,7 +143,7 @@ function AdminLoginForm() {
           >
             {loading ? (
               <span style={styles.loadingSpinnerContainer}>
-                <span style={styles.spinner} />
+                <span className="button-spinner" />
                 <span>Authenticating...</span>
               </span>
             ) : (
@@ -84,6 +152,38 @@ function AdminLoginForm() {
           </button>
         </form>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15%, 45%, 75% { transform: translateX(-8px); }
+          30%, 60%, 90% { transform: translateX(8px); }
+        }
+        @keyframes cardEntrance {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .card-entrance {
+          animation: cardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .shake-anim {
+          animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+          border-color: #EF4444 !important;
+          box-shadow: 0 12px 30px rgba(239, 68, 68, 0.1) !important;
+        }
+        .button-spinner {
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #FFFFFF;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          display: inline-block;
+        }
+      `}</style>
     </div>
   );
 }

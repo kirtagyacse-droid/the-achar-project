@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Error({
   error,
@@ -29,9 +30,9 @@ export default function Error({
         >
           Try Again
         </button>
-        <a href="/" className="btn-lux-secondary">
+        <Link href="/" className="btn-lux-secondary">
           Go Home
-        </a>
+        </Link>
       </div>
     </div>
   );

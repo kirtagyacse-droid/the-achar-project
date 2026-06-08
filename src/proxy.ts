@@ -22,12 +22,31 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    if (!accessToken) {
+    const payload = accessToken ? await verifyToken(accessToken) : null;
+    
+    if (!payload) {
+      // Access token is missing or expired, attempt to refresh using the refresh token cookie
+      const refreshToken = request.cookies.get('admin_refresh_token')?.value;
+      if (refreshToken) {
+        const refreshPayload = await verifyToken(refreshToken);
+        if (refreshPayload && refreshPayload.role === 'admin') {
+          // Refresh token is valid! Re-issue a new access token
+          const newAccessToken = await signAccessToken({ role: 'admin' });
+          const response = NextResponse.next();
+          response.cookies.set('admin_access_token', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 15 * 60 // 15 minutes
+          });
+          return response;
+        }
+      }
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = await verifyToken(accessToken);
-    if (!payload || payload.role !== 'admin') {
+    if (payload.role !== 'admin') {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }

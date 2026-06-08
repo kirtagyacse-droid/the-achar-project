@@ -23,6 +23,78 @@ export default function KitchenViewTab({
   const [newTargetQuantity, setNewTargetQuantity] = useState(5);
   const [newTargetNotes, setNewTargetNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [weatherData, setWeatherData] = useState<{
+    daily?: {
+      time: string[];
+      uv_index_max: number[];
+      precipitation_sum: number[];
+      temperature_2m_max: number[];
+    };
+  } | null>(null);
+
+  React.useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch('/api/admin/weather');
+        if (res.ok) {
+          const data = await res.json();
+          setWeatherData(data);
+        }
+      } catch (err) {
+        console.error('Failed to load weather in kitchen', err);
+      }
+    }
+    fetchWeather();
+  }, []);
+
+  const getBatchScheduleInfo = (prod: Product) => {
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const recentItems = orders
+      .filter(o => new Date(o.createdAt) >= fourteenDaysAgo)
+      .flatMap(o => o.items)
+      .filter(i => i.productId === prod.id);
+
+    const soldQty = recentItems.reduce((sum, i) => sum + i.quantity, 0);
+    const dailyBurn = soldQty / 14;
+
+    const pendingOrderQty = orders
+      .filter(o => ['NEW', 'CONFIRMED', 'PACKED'].includes(o.status))
+      .flatMap(o => o.items)
+      .filter(i => i.productId === prod.id)
+      .reduce((sum, i) => sum + i.quantity, 0);
+
+    const netAvailableStock = prod.stockCount - pendingOrderQty;
+    const rateToUse = dailyBurn > 0 ? dailyBurn : 0.05;
+    const depletionDays = netAvailableStock > 0 ? netAvailableStock / rateToUse : 0;
+
+    let baseDryingTime = 5;
+    const lowerName = prod.name.toLowerCase();
+    if (lowerName.includes('mango')) baseDryingTime = 7;
+    else if (lowerName.includes('chili') || lowerName.includes('mirch')) baseDryingTime = 4;
+    else if (lowerName.includes('lemon') || lowerName.includes('nimbu')) baseDryingTime = 10;
+
+    let rainDelayDays = 0;
+    if (weatherData && weatherData.daily) {
+      weatherData.daily.precipitation_sum.forEach((p: number) => {
+        if (p > 1.5) rainDelayDays += 0.8;
+      });
+    }
+
+    const totalLeadTime = baseDryingTime + Math.round(rainDelayDays);
+    const depletionDate = new Date();
+    depletionDate.setDate(depletionDate.getDate() + Math.round(depletionDays));
+    
+    const recommendedBatchDate = new Date(depletionDate);
+    recommendedBatchDate.setDate(recommendedBatchDate.getDate() - totalLeadTime);
+
+    return {
+      recommendedBatchDate,
+      totalLeadTime,
+      isClose: depletionDays <= 5
+    };
+  };
 
   // Persistent General Kitchen Notes notepad (using localStorage)
   const [generalNotes, setGeneralNotes] = useState(() => {
@@ -234,6 +306,27 @@ export default function KitchenViewTab({
 
   return (
     <div className="admin-section">
+      {/* Weather Alert Banner */}
+      {weatherData && weatherData.daily && Math.max(...weatherData.daily.precipitation_sum) > 1.5 && (
+        <div style={{
+          backgroundColor: '#FFF5F5',
+          border: '1px solid #FEB2B2',
+          padding: '12px 20px',
+          color: '#9B2C2C',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '0.9rem',
+          fontWeight: 600
+        }}>
+          <span>⛈️</span>
+          <div>
+            <strong>Jaipur Weather Alert:</strong> High rainfall is forecast. Sun-drying times in the sun-process gallery will be delayed by ~{weatherData.daily.precipitation_sum.filter((p: number) => p > 1.5).length} days. Adjust batch start dates accordingly.
+          </div>
+        </div>
+      )}
+
       {/* Operations Summary Panel Banner */}
       <div style={{
         display: 'grid',
@@ -316,9 +409,16 @@ export default function KitchenViewTab({
                       <div>
                         <div className="kitchen-product-name">{target.productName}</div>
                         {matchingProd && (
-                          <div className="kitchen-stock-badge">
-                            Shelf Stock: <strong>{matchingProd.stockCount} jars</strong> ({matchingProd.stockStatus})
-                          </div>
+                          <>
+                            <div className="kitchen-stock-badge">
+                              Shelf Stock: <strong>{matchingProd.stockCount} jars</strong> ({matchingProd.stockStatus})
+                            </div>
+                            <div style={{ marginTop: '4px', fontSize: '0.8rem', color: 'var(--admin-muted)' }}>
+                              Next Batch Target Date: <strong style={{ color: getBatchScheduleInfo(matchingProd).isClose ? 'var(--admin-maroon)' : 'inherit' }}>
+                                {getBatchScheduleInfo(matchingProd).recommendedBatchDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                              </strong> (lead {getBatchScheduleInfo(matchingProd).totalLeadTime}d)
+                            </div>
+                          </>
                         )}
                       </div>
 

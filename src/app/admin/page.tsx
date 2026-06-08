@@ -57,7 +57,12 @@ export default async function AdminDashboard() {
   });
 
   const subscriptions = await prisma.subscription.findMany({
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    include: {
+      dispatches: {
+        orderBy: { createdAt: 'desc' }
+      }
+    }
   });
 
   const passports = await prisma.picklePassport.findMany({

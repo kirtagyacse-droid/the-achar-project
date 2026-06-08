@@ -28,6 +28,8 @@ model Product {
   updatedAt     DateTime    @updatedAt
   orderItems    OrderItem[]
   stockAdjustments StockAdjustment[]
+  plannerMinStock  Int         @default(10)
+  plannerNotes     String?
 }
 
 model Order {
@@ -65,17 +67,35 @@ model OrderItem {
 }
 
 model Subscription {
-  id            String    @id @default(cuid())
-  customerName  String
-  phone         String
-  email         String?
-  address       String
-  planJars      Int       @default(2)     // jars per month
-  isActive      Boolean   @default(true)
-  nextDelivery  DateTime?
-  notes         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String                 @id @default(cuid())
+  customerName     String
+  phone            String
+  email            String?
+  address          String
+  planJars         Int                    @default(2)     // jars per month
+  isActive         Boolean                @default(true)
+  nextDelivery     DateTime?
+  notes            String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  planName         String                 @default("Seasonal Discovery Box")
+  frequency        String                 @default("monthly")
+  spicePreference  String                 @default("Medium")
+  exclusions       String?
+  status           String                 @default("ACTIVE") // ACTIVE | PAUSED | CANCELLED
+  dispatches       SubscriptionDispatch[]
+}
+
+model SubscriptionDispatch {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  boxName        String       // e.g. "June 2026 Box"
+  status         String       @default("PENDING") // PENDING | CONFIRMED | SKIPPED | DISPATCHED | DELIVERED
+  paymentMethod  String       @default("COD")
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 }
 
 model PicklePassport {

@@ -12,7 +12,7 @@ interface OverviewTabProps {
   setActiveTab: (tab: TabType) => void;
   setAlerts: React.Dispatch<React.SetStateAction<FestivalAlert[]>>;
   subscriptions: Subscription[];
-  stockAdjustments: StockAdjustment[];
+  _stockAdjustments: StockAdjustment[];
 }
 
 export default function OverviewTab({
@@ -24,7 +24,7 @@ export default function OverviewTab({
   setActiveTab,
   setAlerts,
   subscriptions,
-  stockAdjustments
+  _stockAdjustments
 }: OverviewTabProps) {
 
   // Daily statistics
@@ -64,7 +64,7 @@ export default function OverviewTab({
   const referralShare = totalRevenue > 0 ? (referralRevenue / totalRevenue) * 100 : 0;
 
   // Subscriptions recurring revenue (MRR) projection (assuming ₹180 average per jar)
-  const activeSubscriptions = subscriptions.filter(s => s.isActive);
+  const activeSubscriptions = subscriptions.filter(s => s.status === 'ACTIVE');
   const totalActiveSubJars = activeSubscriptions.reduce((sum, s) => sum + s.planJars, 0);
   const projectedMRR = totalActiveSubJars * 180;
 
@@ -124,8 +124,107 @@ export default function OverviewTab({
     }
   };
 
+  // Calculate critical products for the Production Planner warning banner
+  const criticalPlannerAlerts = products.map(prod => {
+    const minSafetyStock = prod.plannerMinStock ?? 10;
+    
+    // Calculate rolling 14-day velocity
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    
+    const recentItems = orders
+      .filter(o => new Date(o.createdAt) >= fourteenDaysAgo)
+      .flatMap(o => o.items)
+      .filter(i => i.productId === prod.id);
+
+    const soldQty14Days = recentItems.reduce((sum, i) => sum + i.quantity, 0);
+    const dailyBurn = soldQty14Days / 14;
+
+    const pendingOrderQty = orders
+      .filter(o => ['NEW', 'CONFIRMED', 'PACKED'].includes(o.status))
+      .flatMap(o => o.items)
+      .filter(i => i.productId === prod.id)
+      .reduce((sum, i) => sum + i.quantity, 0);
+
+    const netAvailableStock = prod.stockCount - pendingOrderQty;
+    const rateToUse = dailyBurn > 0 ? dailyBurn : 0.05;
+    const depletionDays = netAvailableStock > 0 ? netAvailableStock / rateToUse : 0;
+
+    let trigger = false;
+    let reason = '';
+
+    if (netAvailableStock <= 0) {
+      trigger = true;
+      reason = `Deficit of ${Math.abs(netAvailableStock)} jars relative to active orders`;
+    } else if (depletionDays <= 3) {
+      trigger = true;
+      reason = `Stock runs out in ~${Math.round(depletionDays)} days based on recent demand`;
+    } else if (prod.stockCount < minSafetyStock) {
+      trigger = true;
+      reason = `Stock (${prod.stockCount} jars) is below safety limit (${minSafetyStock} jars)`;
+    }
+
+    return {
+      product: prod,
+      trigger,
+      reason
+    };
+  }).filter(item => item.trigger);
+
   return (
     <div className="admin-section">
+      {/* Production Planner Alerts Banner */}
+      {criticalPlannerAlerts.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+          <div 
+            style={{
+              background: '#FFF5F5',
+              border: '1px solid #FEB2B2',
+              color: '#9B2C2C',
+              padding: '16px 24px',
+              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              boxShadow: '0 4px 12px rgba(229, 62, 62, 0.05)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
+              <span style={{ fontSize: '1.4rem' }}>🚨</span>
+              <span>Production Planning Alerts</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem', paddingLeft: '32px' }}>
+              {criticalPlannerAlerts.slice(0, 3).map((alert, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>
+                    • <strong>{alert.product.name}</strong>: {alert.reason}
+                  </span>
+                  <button 
+                    onClick={() => setActiveTab('planner')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#9A2C2C',
+                      textDecoration: 'underline',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    Open Planner &rarr;
+                  </button>
+                </div>
+              ))}
+              {criticalPlannerAlerts.length > 3 && (
+                <div style={{ fontStyle: 'italic', marginTop: '4px' }}>
+                  And {criticalPlannerAlerts.length - 3} other items need production attention.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Festival Alerts Banner List */}
       {alerts.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
