@@ -5,6 +5,7 @@ import { GiftingModeProvider } from "@/context/GiftingModeContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "RS Savoury",
@@ -29,6 +30,7 @@ export default function RootLayout({
             <Footer />
           </GiftingModeProvider>
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
