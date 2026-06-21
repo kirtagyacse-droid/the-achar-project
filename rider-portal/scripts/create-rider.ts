@@ -1,5 +1,5 @@
 import bcryptjs from 'bcryptjs';
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 
 async function createRider() {
   const phone = process.argv[2];
