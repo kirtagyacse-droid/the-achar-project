@@ -1,0 +1,279 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  name          String
+  description   String
+  price         Float
+  imageUrl      String?
+  stockStatus   String      @default("IN_STOCK") // IN_STOCK, OUT_OF_STOCK
+  stockCount    Int         @default(10)
+  spiciness     Int         @default(2) // 0: Sweet, 1: Mild, 2: Medium, 3: Hot/Spicy
+  category      String      @default("Pickle")
+  season        String?     // null=always visible, "summer", "winter", "pantry"
+  batchNumber   String?     // e.g. "Batch #042"
+  batchDate     DateTime?   // when this batch was made
+  tastingNotes  String?     // wine-style flavor description text
+  flavorProfile Json?       // { tangy: 0-5, spicy: 0-5, sweet: 0-5, savory: 0-5, salty: 0-5 }
+  sizes         Json?       // [{ label: "250g", weightG: 250, price: 180 }, ...]
+  processImages String[]    // array of image URLs for the sun-process gallery
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+  stockAdjustments StockAdjustment[]
+  plannerMinStock  Int         @default(10)
+  plannerNotes     String?
+  isGiftReady      Boolean     @default(false) // "best for gifting" tag
+}
+
+model Order {
+  id               String           @id @default(uuid())
+  customerName     String
+  phone            String
+  altPhone         String?
+  address          String
+  landmark         String?
+  city             String
+  state            String
+  pincode          String
+  notes            String?
+  totalAmount      Float
+  status           String           @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
+  paymentMethod    String           @default("COD")
+  isGiftOrder      Boolean          @default(false)
+  giftMessage      String?
+  giftPackaging    String?        // "cloth-wrap" | "wooden-crate" | null
+  referralCode     String?        // referral code used at checkout
+  dispatchPhotoUrl String?        // photo Aunty uploads as proof of packing
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  items            OrderItem[]
+  riderAssignments RiderAssignment[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Subscription {
+  id               String                 @id @default(cuid())
+  customerName     String
+  phone            String
+  email            String?
+  address          String
+  planJars         Int                    @default(2)     // jars per month
+  isActive         Boolean                @default(true)
+  nextDelivery     DateTime?
+  notes            String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  planName         String                 @default("Seasonal Discovery Box")
+  frequency        String                 @default("monthly")
+  spicePreference  String                 @default("Medium")
+  exclusions       String?
+  status           String                 @default("ACTIVE") // ACTIVE | PAUSED | CANCELLED
+  dispatches       SubscriptionDispatch[]
+}
+
+model SubscriptionDispatch {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  boxName        String       // e.g. "June 2026 Box"
+  status         String       @default("PENDING") // PENDING | CONFIRMED | SKIPPED | DISPATCHED | DELIVERED
+  paymentMethod  String       @default("COD")
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model PicklePassport {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  customerName  String
+  stamps        String[]  // array of product IDs that have been tried
+  isComplete    Boolean   @default(false)
+  freeJarClaimed Boolean  @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JarReturn {
+  id            String    @id @default(cuid())
+  phone         String
+  customerName  String
+  jarCount      Int
+  discountApplied Boolean @default(false)
+  loggedAt      DateTime  @default(now())
+}
+
+model Referral {
+  id             String    @id @default(cuid())
+  referrerPhone  String
+  referrerName   String
+  referralCode   String    @unique
+  usedByPhone    String?
+  usedByName     String?
+  referrerCredit Int       @default(0)   // in rupees
+  refereeDiscount Int      @default(0)   // in rupees
+  isUsed         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  coverImage  String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tags        String[]  @default([]) // seasonal story tags e.g. ["summer", "gift-guide"]
+  productIds  String[]  @default([]) // related product IDs linked in story
+  isFromKitchen Boolean  @default(false) // "from the kitchen" highlight flag
+}
+
+model FestivalAlert {
+  id           String   @id @default(cuid())
+  name         String   // "Diwali 2025"
+  festivalDate DateTime
+  alertDate    DateTime // when to show the prep reminder (2-3 weeks before)
+  isDismissed  Boolean  @default(false)
+  message      String?
+}
+
+model FestivalBundle {
+  id              String   @id @default(uuid())
+  name            String   // "Diwali Delight Box"
+  slug            String   @unique // url-friendly slug
+  description     String
+  coverImage      String?  // hero image for the bundle
+  productIds      String[] // product IDs included in bundle
+  packagingStyle  String?  @default("cloth-wrap") // cloth-wrap or wooden-crate
+  isPrebuilt      Boolean  @default(true) // true if admin-curated, false for custom
+  isPublished     Boolean  @default(false)
+  sortOrder       Int      @default(0) // for ordering in listings
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model RateLimit {
+  key      String   @id
+  points   Int      @default(0)
+  expireAt DateTime
+}
+
+model KitchenTarget {
+  id             String   @id @default(cuid())
+  productId      String?
+  productName    String
+  targetQuantity Int      @default(0)
+  notes          String?
+  status         String   @default("pending") // pending, in_progress, ready, packed
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model StockAdjustment {
+  id          String   @id @default(cuid())
+  productId   String
+  productName String
+  quantity    Int      // positive or negative change
+  reason      String   // e.g., "manual_audit", "batch_cooked", "sale", "waste", "other"
+  notes       String?
+  batchNumber String?
+  createdAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Rider {
+  id          String           @id @default(cuid())
+  phone       String           @unique
+  name        String
+  pinHash     String
+  locality    String?
+  isActive    Boolean          @default(true)
+  isOnline    Boolean          @default(false)
+  currentLat  Float?
+  currentLng  Float?
+  lastActive  DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  assignments RiderAssignment[]
+  otps        DeliveryOtp[]
+  events      DeliveryEvent[]
+}
+
+model RiderAssignment {
+  id             String   @id @default(cuid())
+  riderId        String
+  orderId        String
+  status         String   @default("ASSIGNED")
+  clusterKey     String?
+  assignedAt     DateTime @default(now())
+  deliveredAt    DateTime?
+  failedReason   String?
+  failureNote    String?
+  codCollected   Boolean  @default(false)
+  codAmount      Float    @default(0)
+  earnings       Float    @default(0)
+  proofPhotoUrl  String?
+  otpRequestedAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  rider          Rider    @relation(fields: [riderId], references: [id])
+  order          Order    @relation(fields: [orderId], references: [id])
+  events         DeliveryEvent[]
+
+  @@unique([riderId, orderId])
+  @@index([riderId, status])
+  @@index([riderId, assignedAt])
+}
+
+model DeliveryOtp {
+  id           String   @id @default(cuid())
+  assignmentId String
+  riderId      String
+  otpHash      String
+  otpPlain     String?
+  requestedAt  DateTime @default(now())
+  expiresAt    DateTime
+  verifiedAt   DateTime?
+  used         Boolean  @default(false)
+  rider        Rider    @relation(fields: [riderId], references: [id])
+
+  @@index([assignmentId])
+  @@index([riderId])
+}
+
+model DeliveryEvent {
+  id           String   @id @default(cuid())
+  assignmentId String?
+  riderId      String
+  eventType    String
+  note         String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  assignment   RiderAssignment? @relation(fields: [assignmentId], references: [id])
+  rider        Rider    @relation(fields: [riderId], references: [id])
+
+  @@index([riderId, createdAt])
+}
+
+
+

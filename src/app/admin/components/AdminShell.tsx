@@ -11,6 +11,7 @@ import SubscriptionsTab from './SubscriptionsTab';
 import ReferralsTab from './ReferralsTab';
 import DiaryTab from './DiaryTab';
 import FestivalTab from './FestivalTab';
+import BundlesTab from './BundlesTab';
 import SettingsTab from './SettingsTab';
 import { 
   Product, 
@@ -21,8 +22,9 @@ import {
   Subscription, 
   PicklePassport, 
   JarReturn, 
-  Referral,
-  StockAdjustment
+  Referral, 
+  StockAdjustment,
+  FestivalBundle
 } from '../AdminClient';
 
 interface AdminShellProps {
@@ -48,6 +50,8 @@ interface AdminShellProps {
   setKitchenTargets: React.Dispatch<React.SetStateAction<KitchenTarget[]>>;
   stockAdjustments: StockAdjustment[];
   setStockAdjustments: React.Dispatch<React.SetStateAction<StockAdjustment[]>>;
+  bundles: FestivalBundle[];
+  setBundles: React.Dispatch<React.SetStateAction<FestivalBundle[]>>;
 }
 
 export type TabType = 
@@ -61,6 +65,7 @@ export type TabType =
   | 'referrals' 
   | 'diary' 
   | 'festivals' 
+  | 'bundles'
   | 'settings';
 
 export default function AdminShell({
@@ -85,7 +90,9 @@ export default function AdminShell({
   kitchenTargets,
   setKitchenTargets,
   stockAdjustments,
-  setStockAdjustments
+  setStockAdjustments,
+  bundles,
+  setBundles
 }: AdminShellProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
@@ -105,7 +112,8 @@ export default function AdminShell({
     { type: 'subscriptions', label: 'Subscriptions', icon: '📬' },
     { type: 'referrals', label: 'Referrals', icon: '🔗' },
     { type: 'diary', label: 'Achar Diary', icon: '✍️' },
-    { type: 'festivals', label: 'Festival Bundles', icon: '🏮', badge: activeAlertsCount > 0 ? activeAlertsCount : undefined },
+    { type: 'festivals', label: 'Festival Alerts', icon: '🏮', badge: activeAlertsCount > 0 ? activeAlertsCount : undefined },
+    { type: 'bundles', label: 'Festival Bundles', icon: '🎁' },
     { type: 'settings', label: 'Settings & Security', icon: '⚙️' },
   ];
 
@@ -132,7 +140,7 @@ export default function AdminShell({
             setOrders={setOrders}
           />
         );
-      case 'kitchen':
+case 'kitchen':
         return (
           <KitchenViewTab
             kitchenTargets={kitchenTargets}
@@ -199,6 +207,14 @@ export default function AdminShell({
           <FestivalTab
             alerts={alerts}
             setAlerts={setAlerts}
+          />
+        );
+      case 'bundles':
+        return (
+          <BundlesTab
+            products={products}
+            bundles={bundles}
+            setBundles={setBundles}
           />
         );
       case 'settings':

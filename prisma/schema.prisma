@@ -30,10 +30,11 @@ model Product {
   stockAdjustments StockAdjustment[]
   plannerMinStock  Int         @default(10)
   plannerNotes     String?
+  isGiftReady      Boolean     @default(false) // "best for gifting" tag
 }
 
 model Order {
-  id               String      @id @default(uuid())
+  id               String           @id @default(uuid())
   customerName     String
   phone            String
   altPhone         String?
@@ -44,16 +45,17 @@ model Order {
   pincode          String
   notes            String?
   totalAmount      Float
-  status           String      @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
-  paymentMethod    String      @default("COD")
-  isGiftOrder      Boolean     @default(false)
+  status           String           @default("NEW") // NEW, CONFIRMED, PACKED, DISPATCHED, DELIVERED
+  paymentMethod    String           @default("COD")
+  isGiftOrder      Boolean          @default(false)
   giftMessage      String?
-  giftPackaging    String?     // "cloth-wrap" | "wooden-crate" | null
-  referralCode     String?     // referral code used at checkout
-  dispatchPhotoUrl String?     // photo Aunty uploads as proof of packing
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  giftPackaging    String?        // "cloth-wrap" | "wooden-crate" | null
+  referralCode     String?        // referral code used at checkout
+  dispatchPhotoUrl String?        // photo Aunty uploads as proof of packing
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   items            OrderItem[]
+  riderAssignments RiderAssignment[]
 }
 
 model OrderItem {
@@ -141,6 +143,9 @@ model BlogPost {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  tags        String[]  @default([]) // seasonal story tags e.g. ["summer", "gift-guide"]
+  productIds  String[]  @default([]) // related product IDs linked in story
+  isFromKitchen Boolean  @default(false) // "from the kitchen" highlight flag
 }
 
 model FestivalAlert {
@@ -150,6 +155,21 @@ model FestivalAlert {
   alertDate    DateTime // when to show the prep reminder (2-3 weeks before)
   isDismissed  Boolean  @default(false)
   message      String?
+}
+
+model FestivalBundle {
+  id              String   @id @default(uuid())
+  name            String   // "Diwali Delight Box"
+  slug            String   @unique // url-friendly slug
+  description     String
+  coverImage      String?  // hero image for the bundle
+  productIds      String[] // product IDs included in bundle
+  packagingStyle  String?  @default("cloth-wrap") // cloth-wrap or wooden-crate
+  isPrebuilt      Boolean  @default(true) // true if admin-curated, false for custom
+  isPublished     Boolean  @default(false)
+  sortOrder       Int      @default(0) // for ordering in listings
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model RateLimit {
@@ -179,6 +199,74 @@ model StockAdjustment {
   batchNumber String?
   createdAt   DateTime @default(now())
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Rider {
+  id          String           @id @default(cuid())
+  phone       String           @unique
+  name        String
+  pinHash     String
+  locality    String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  assignments RiderAssignment[]
+  otps        DeliveryOtp[]
+  events      DeliveryEvent[]
+}
+
+model RiderAssignment {
+  id             String   @id @default(cuid())
+  riderId        String
+  orderId        String
+  status         String   @default("ASSIGNED")
+  clusterKey     String?
+  assignedAt     DateTime @default(now())
+  deliveredAt    DateTime?
+  failedReason   String?
+  failureNote    String?
+  codCollected   Boolean  @default(false)
+  codAmount      Float    @default(0)
+  otpRequestedAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  rider          Rider    @relation(fields: [riderId], references: [id])
+  order          Order    @relation(fields: [orderId], references: [id])
+  events         DeliveryEvent[]
+
+  @@unique([riderId, orderId])
+  @@index([riderId, status])
+  @@index([riderId, assignedAt])
+}
+
+model DeliveryOtp {
+  id           String   @id @default(cuid())
+  assignmentId String
+  riderId      String
+  otpHash      String
+  otpPlain     String?
+  requestedAt  DateTime @default(now())
+  expiresAt    DateTime
+  verifiedAt   DateTime?
+  used         Boolean  @default(false)
+  rider        Rider    @relation(fields: [riderId], references: [id])
+
+  @@index([assignmentId])
+  @@index([riderId])
+}
+
+model DeliveryEvent {
+  id           String   @id @default(cuid())
+  assignmentId String?
+  riderId      String
+  eventType    String
+  note         String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  assignment   RiderAssignment? @relation(fields: [assignmentId], references: [id])
+  rider        Rider    @relation(fields: [riderId], references: [id])
+
+  @@index([riderId, createdAt])
 }
 
 

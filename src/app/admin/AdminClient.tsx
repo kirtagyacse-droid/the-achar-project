@@ -70,6 +70,9 @@ export interface BlogPost {
   coverImage: string | null;
   isPublished: boolean;
   createdAt: Date | string;
+  tags?: string[];
+  productIds?: string[];
+  isFromKitchen?: boolean;
 }
 
 export interface KitchenTarget {
@@ -157,6 +160,19 @@ export interface StockAdjustment {
   createdAt: string | Date;
 }
 
+export interface FestivalBundle {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  coverImage: string | null;
+  productIds: string[];
+  packagingStyle: string | null;
+  isPrebuilt: boolean;
+  isPublished: boolean;
+  createdAt: string | Date;
+}
+
 interface AdminClientProps {
   initialOrders: Order[];
   initialProducts: Product[];
@@ -167,6 +183,7 @@ interface AdminClientProps {
   initialJarReturns: JarReturn[];
   initialReferrals: Referral[];
   initialStockAdjustments: StockAdjustment[];
+  initialBundles: FestivalBundle[];
   isWhatsAppAlertConfigured: boolean;
 }
 
@@ -180,6 +197,7 @@ export default function AdminClient({
   initialJarReturns,
   initialReferrals,
   initialStockAdjustments,
+  initialBundles,
   isWhatsAppAlertConfigured 
 }: AdminClientProps) {
   // Core states
@@ -192,6 +210,7 @@ export default function AdminClient({
   const [jarReturns, setJarReturns] = useState<JarReturn[]>(initialJarReturns);
   const [referrals] = useState<Referral[]>(initialReferrals);
   const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>(initialStockAdjustments);
+  const [bundles, setBundles] = useState<FestivalBundle[]>(initialBundles);
   
   // Lazy state initializers to avoid state settings inside effects
   const [sentNudgeIds, setSentNudgeIds] = useState<string[]>(() => {
@@ -250,6 +269,12 @@ export default function AdminClient({
     setStockAdjustments(initialStockAdjustments);
   }
 
+  const [prevBundles, setPrevBundles] = useState<FestivalBundle[]>(initialBundles);
+  if (initialBundles !== prevBundles) {
+    setPrevBundles(initialBundles);
+    setBundles(initialBundles);
+  }
+
   // Fetch kitchen targets on mount
   useEffect(() => {
     async function fetchKitchenTargets() {
@@ -305,6 +330,8 @@ export default function AdminClient({
       setKitchenTargets={setKitchenTargets}
       stockAdjustments={stockAdjustments}
       setStockAdjustments={setStockAdjustments}
+      bundles={bundles}
+      setBundles={setBundles}
     />
   );
 }

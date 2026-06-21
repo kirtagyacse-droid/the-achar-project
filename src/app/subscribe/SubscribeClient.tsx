@@ -338,8 +338,28 @@ export default function SubscribePage() {
     );
   }
 
-  // Enrollment View
-  if (activeView === 'join') {
+// Enrollment View
+   if (activeView === 'join') {
+    const handleShareSubscription = () => {
+      const params = new URLSearchParams({
+        name: formData.customerName.split(' ')[0] || 'Member',
+        plan: formData.planName,
+        months: '1',
+        milestone: 'first'
+      });
+      const shareUrl = `${window.location.origin}/api/og/subscription?${params}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Achar Club Membership',
+          text: `I just joined the RS Savoury Achar Club! ${formData.planName} curated pickles delivered monthly.`,
+          url: shareUrl
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert('Share preview link copied to clipboard!');
+      }
+    };
+
     if (success) {
       return (
         <div className="container" style={{ padding: '80px 24px', textAlign: 'center', maxWidth: '600px' }}>
@@ -351,6 +371,20 @@ export default function SubscribePage() {
             Aunty will contact you shortly via phone/WhatsApp to confirm your first dispatch selection. We mature each jar under the Jaipur sun specifically for club members!
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
+            <button
+              onClick={handleShareSubscription}
+              style={{
+                padding: '12px 24px',
+                fontSize: '0.9rem',
+                backgroundColor: '#38A169',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              📱 Share My Membership
+            </button>
             <Link href="/products" className="btn-lux-primary">Explore Products Menu</Link>
             <button onClick={() => { setSuccess(false); setActiveView('portal'); }} className="btn-lux-secondary">Go to My Portal</button>
           </div>

@@ -104,6 +104,27 @@ export default function PassportPage() {
     }
   };
 
+  const handleSharePassport = () => {
+    if (!passport) return;
+    const params = new URLSearchParams({
+      stamps: passport.stamps.length.toString(),
+      total: products.length.toString(),
+      name: passport.customerName?.split(' ')[0] || 'My',
+      completed: passport.isComplete.toString()
+    });
+    const shareUrl = `${window.location.origin}/api/og/passport?${params}`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Pickle Passport Progress',
+        text: `I'm collecting stamps at RS Savoury! Join me in trying all of Aunty's artisanal pickles.`,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Share preview link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="container" style={{ padding: '60px 24px', maxWidth: '900px' }}>
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
@@ -184,11 +205,29 @@ export default function PassportPage() {
           <h3 className="heading-serif" style={{ fontSize: '1.8rem' }}>
             {passport ? `${passport.customerName}'s Stamp Board` : 'Your Stamp Board'}
           </h3>
-          {passport && (
-            <span style={{ fontSize: '1rem', color: 'var(--color-accent)', fontWeight: 600 }}>
-              {passport.stamps.length} of {products.length} Stamped
-            </span>
-          )}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {passport && (
+              <span style={{ fontSize: '1rem', color: 'var(--color-accent)', fontWeight: 600 }}>
+                {passport.stamps.length} of {products.length} Stamped
+              </span>
+            )}
+            {passport && (
+              <button
+                onClick={handleSharePassport}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.8rem',
+                  backgroundColor: '#38A169',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                📱 Share
+              </button>
+            )}
+          </div>
         </div>
 
         {passport?.isComplete && (

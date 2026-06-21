@@ -12,7 +12,10 @@ export default function DiaryTab({ blogPosts, setBlogPosts }: DiaryTabProps) {
     title: '',
     content: '',
     coverImage: '',
-    isPublished: false
+    isPublished: false,
+    tags: [] as string[],
+    productIds: [] as string[],
+    isFromKitchen: false
   });
 
   const handleCreateBlogPost = async (e: React.FormEvent) => {
@@ -32,7 +35,7 @@ export default function DiaryTab({ blogPosts, setBlogPosts }: DiaryTabProps) {
       
       if (res.ok) {
         setBlogPosts(prev => [data.blogPost, ...prev]);
-        setNewPost({ title: '', content: '', coverImage: '', isPublished: false });
+        setNewPost({ title: '', content: '', coverImage: '', isPublished: false, tags: [], productIds: [], isFromKitchen: false });
         alert('Diary entry saved successfully!');
       } else {
         alert(data.message || 'Failed to create diary entry');
@@ -94,9 +97,44 @@ export default function DiaryTab({ blogPosts, setBlogPosts }: DiaryTabProps) {
             />
           </div>
 
+          <div className="form-group" style={{ margin: 0 }}>
+            <label>Seasonal Tags (comma-separated)</label>
+            <input
+              type="text"
+              placeholder="e.g. summer, mango, raw"
+              className="form-control"
+              value={newPost.tags?.join(', ') || ''}
+              onChange={e => setNewPost({ ...newPost, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
+            />
+          </div>
+
+          <div className="form-group" style={{ margin: 0 }}>
+            <label>Featured Products (comma-separated product IDs)</label>
+            <input
+              type="text"
+              placeholder="e.g. prod_1, prod_2, prod_3"
+              className="form-control"
+              value={newPost.productIds?.join(', ') || ''}
+              onChange={e => setNewPost({ ...newPost, productIds: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
+            />
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
+              id="from-kitchen-chk"
+              checked={newPost.isFromKitchen}
+              onChange={e => setNewPost({ ...newPost, isFromKitchen: e.target.checked })}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <label htmlFor="from-kitchen-chk" style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' }}>
+              Feature as &ldquo;From the Kitchen&rdquo; story
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <input
+              type="checkbox"
               id="is-published-chk"
               checked={newPost.isPublished}
               onChange={e => setNewPost({ ...newPost, isPublished: e.target.checked })}

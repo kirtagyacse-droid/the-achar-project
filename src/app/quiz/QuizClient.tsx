@@ -113,6 +113,26 @@ export default function QuizPage() {
     setAddedToCart(true);
   };
 
+  const handleShareQuiz = () => {
+    if (!recommendedProduct) return;
+    const params = new URLSearchParams({
+      product: recommendedProduct.name,
+      spice: 'Medium',
+      profile: 'Perfect Match'
+    });
+    const shareUrl = `${window.location.origin}/api/og/quiz?${params}`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Perfect Pickle Match',
+        text: `The Pickle Finder Quiz matched me with ${recommendedProduct.name}! Find your perfect pickle at RS Savoury.`,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Share preview link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="quiz-page-container">
       <div className="container" style={{ padding: '40px 0' }}>
@@ -234,27 +254,45 @@ export default function QuizPage() {
                     <span className="product-badge-lux product-badge-in">In Stock</span>
                   </div>
 
-                  <div className="product-action-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <button 
-                      type="button"
-                      className="product-btn-lux" 
-                      onClick={handleAddToCart}
-                      disabled={addedToCart}
-                      style={{ padding: '14px', fontSize: '0.85rem' }}
-                    >
-                      {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
-                    </button>
+<div className="product-action-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                     <button 
+                       type="button"
+                       className="product-btn-lux" 
+                       onClick={handleAddToCart}
+                       disabled={addedToCart}
+                       style={{ padding: '14px', fontSize: '0.85rem' }}
+                     >
+                       {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
+                     </button>
 
-                    <a 
-                      href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210'}?text=${encodeURIComponent(`Hi! The Pickle Finder Quiz recommended the ${recommendedProduct.name} (₹${recommendedProduct.price}). I'd like to place an order!`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-whatsapp-order"
-                      style={{ margin: 0 }}
-                    >
-                      💬 Order on WhatsApp
-                    </a>
-                  </div>
+                     <div style={{ display: 'flex', gap: '8px' }}>
+                       <button
+                         type="button"
+                         onClick={handleShareQuiz}
+                         style={{
+                           flex: 1,
+                           padding: '10px',
+                           fontSize: '0.8rem',
+                           backgroundColor: '#38A169',
+                           color: 'white',
+                           border: 'none',
+                           borderRadius: '4px',
+                           cursor: 'pointer',
+                         }}
+                       >
+                         📱 Share
+                       </button>
+                       <a 
+                         href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210'}?text=${encodeURIComponent(`Hi! The Pickle Finder Quiz recommended the ${recommendedProduct.name} (₹${recommendedProduct.price}). I'd like to place an order!`)}`}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="btn-whatsapp-order"
+                         style={{ flex: 1, margin: 0 }}
+                       >
+                         💬 Order on WhatsApp
+                       </a>
+                     </div>
+                   </div>
                 </div>
               </div>
             ) : (

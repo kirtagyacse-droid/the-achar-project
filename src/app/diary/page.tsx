@@ -36,7 +36,9 @@ It is this slow expansion and contraction, repeated over 21 sun-soaked days, tha
 So next time you open one of our jars, remember: you are tasting 21 days of warm Rajasthan sunshine. 💛`,
           coverImage: "/uploads/keri-ka-khatta.jpg",
           isPublished: true,
-          publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+          publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          tags: ["summer", "process", "behind-the-scenes"],
+          isFromKitchen: true
         },
         {
           title: "Sourcing spices from the old bazaars of Jaipur",
@@ -52,7 +54,28 @@ Grinding them coarsely is the key. If you grind them into a fine powder, they re
 It takes extra effort, but when you eat our pickle with a warm paratha, that coarse texture of spices is what makes it feel like home.`,
           coverImage: "/uploads/teekha-hari-mirch.jpg",
           isPublished: true,
-          publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+          publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          tags: ["behind-the-scenes", "ingredients"],
+          isFromKitchen: true
+        },
+        {
+          title: "Diwali Gift Box Guide: Celebrate with Handcrafted Love",
+          slug: "diwali-gift-box-guide",
+          content: `Diwali is the perfect time to share the warmth of homemade pickles with your loved ones. Our festive bundles combine the best of our seasonal specialties.
+
+This year, our Diwali Delight Box includes:
+- Keri Ka Khatta (our signature summer sour)
+- Nimbu Khatta Meetha (traditional sweet-sour lime)
+- Teekha Hari Mirch (for the spice lovers)
+- Keri with Deshi Chana (Jaipur specialty)
+
+Each box comes wrapped in premium cotton potli or our handcrafted wooden crate, with a personalized message card included. The spices are perfectly balanced for Diwali sweets and snacks.`,
+          coverImage: "/uploads/keri-ka-khatta.jpg",
+          isPublished: true,
+          publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          tags: ["festival", "gift-guide", "diwali"],
+          isFromKitchen: false,
+          productIds: []
         }
       ]
     });
@@ -74,14 +97,70 @@ export default async function DiaryPage() {
           PUBLIC BLOG
         </span>
         <h1 className="font-handwriting" style={{ fontSize: '4.5rem', margin: '10px 0 15px', color: 'var(--text-main)', lineHeight: 1.1 }}>
-          Aunty's Diary
+          Aunty&apos;s Diary
         </h1>
         <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6' }}>
           Warm stories, traditional recipe secrets, and tales from our sun-soaked Jaipur kitchen.
         </p>
       </div>
 
+      {/* Festival Stories Section */}
+      {posts.some(p => p.tags && (p.tags.includes('festival') || p.tags.includes('gift-guide'))) && (
+        <div style={{ marginBottom: '50px' }}>
+          <h3 className="heading-serif" style={{ fontSize: '1.6rem', marginBottom: '24px', color: 'var(--color-accent)' }}>
+            🎉 Festival Stories & Gift Guides
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+            {posts.filter(p => p.tags && (p.tags.includes('festival') || p.tags.includes('gift-guide'))).map((post) => (
+              <Link href={`/diary/${post.slug}`} key={post.id} style={{ textDecoration: 'none' }}>
+                <article
+                  className="card"
+                  style={{
+                    display: 'flex',
+                    gap: '16px',
+                    padding: '20px',
+                    border: '1px solid var(--border-light)',
+                    transition: 'transform 0.2s',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {post.coverImage && (
+                    <div
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        backgroundImage: `url(${post.coverImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        border: '1px solid var(--border-light)',
+                      }}
+                    />
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                      • {post.tags && post.tags.includes('diwali') ? 'Diwali Special' : 'Festival'}
+                    </span>
+                    <h4 className="heading-serif" style={{ fontSize: '1.2rem', margin: '4px 0', color: 'var(--text-main)' }}>
+                      {post.title}
+                    </h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>
+                      {post.content.substring(0, 100)}...
+                    </p>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Posts Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <h3 className="heading-serif" style={{ fontSize: '1.6rem', marginBottom: '8px' }}>
+          All Stories
+        </h3>
         {posts.map((post) => {
           // Generate a simple 2-line excerpt (about 150 chars)
           const cleanText = post.content.replace(/\n+/g, ' ');

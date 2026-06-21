@@ -82,6 +82,10 @@ export default async function AdminDashboard() {
     take: 50
   });
 
+  const bundles = await prisma.festivalBundle.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+
   const isWhatsAppAlertConfigured = !!process.env.CALLMEBOT_API_KEY;
 
   return (
@@ -99,6 +103,7 @@ export default async function AdminDashboard() {
         initialJarReturns={JSON.parse(JSON.stringify(jarReturns))}
         initialReferrals={JSON.parse(JSON.stringify(referrals))}
         initialStockAdjustments={JSON.parse(JSON.stringify(stockAdjustments))}
+        initialBundles={JSON.parse(JSON.stringify(bundles))}
         isWhatsAppAlertConfigured={isWhatsAppAlertConfigured}
       />
     </div>

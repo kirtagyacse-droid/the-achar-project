@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useGiftingMode } from '@/context/GiftingModeContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 interface Product {
   id: string;
@@ -11,6 +10,19 @@ interface Product {
   price: number;
   imageUrl: string | null;
   description: string;
+  isGiftReady?: boolean;
+}
+
+interface FestivalBundle {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  coverImage: string | null;
+  productIds: string[];
+  packagingStyle?: string;
+  isPrebuilt: boolean;
+  isPublished: boolean;
 }
 
 export default function GiftBuilderPage() {
@@ -19,6 +31,7 @@ export default function GiftBuilderPage() {
   const router = useRouter();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [bundles, setBundles] = useState<FestivalBundle[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   
@@ -26,19 +39,21 @@ export default function GiftBuilderPage() {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [packaging, setPackaging] = useState<'cloth-wrap' | 'wooden-crate'>('cloth-wrap');
   const [messageText, setMessageText] = useState('');
+  const [occasion, setOccasion] = useState('Festive Celebration');
 
   useEffect(() => {
-    // Fetch products to populate Step 1
-    fetch('/api/passport?phone=dummy')
-      .then(res => res.json())
-      .then(data => {
-        if (data.products) {
-          // Filter to show only true pickles
-          setProducts(data.products.filter((p: any) => p.name !== "Aunty's Starter Trio"));
-        }
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
+    // Fetch products and bundles
+    Promise.all([
+      fetch('/api/products').then(res => res.json()),
+      fetch('/api/bundles').then(res => res.json()).catch(() => ({ bundles: [] }))
+    ]).then(([productsData, bundlesData]) => {
+      if (productsData) {
+        setProducts(productsData.filter((p: Product) => p.name !== "Aunty&apos;s Starter Trio"));
+      }
+      if (bundlesData?.bundles) {
+        setBundles(bundlesData.bundles.filter((b: FestivalBundle) => b.isPublished));
+      }
+    }).catch(err => console.error(err)).finally(() => setLoading(false));
   }, []);
 
   const handleProductToggle = (productId: string) => {
@@ -55,8 +70,18 @@ export default function GiftBuilderPage() {
     });
   };
 
+  const handleSelectBundle = (bundle: FestivalBundle) => {
+    setSelectedProductIds(bundle.productIds);
+    setPackaging((bundle.packagingStyle as 'cloth-wrap' | 'wooden-crate') || 'cloth-wrap');
+    setOccasion(bundle.name);
+  };
+
   const getSelectedProducts = () => {
     return products.filter(p => selectedProductIds.includes(p.id));
+  };
+
+  const getGiftReadyProducts = () => {
+    return products.filter(p => p.isGiftReady);
   };
 
   const getPackagingLabel = () => {
@@ -73,6 +98,25 @@ export default function GiftBuilderPage() {
 
   const getGrandTotal = () => {
     return getJarsTotal() + getPackagingPrice();
+  };
+
+  const handleShareGiftPreview = () => {
+    const params = new URLSearchParams({
+      occasion,
+      packaging,
+      total: getGrandTotal().toString()
+    });
+    const shareUrl = `${window.location.origin}/api/og/gift?${params}`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My RS Savoury Gift Box',
+        text: `Check out this premium pickle gift box I curated for ${occasion}!`,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard!');
+    }
   };
 
   const handleAddToCart = () => {
@@ -120,7 +164,9 @@ export default function GiftBuilderPage() {
   if (loading) {
     return (
       <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
-        <h3>Loading products...</h3>
+        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>⏳</div>
+        <h3 style={{ color: 'var(--text-main)', marginBottom: '8px' }}>Preparing the gift builder...</h3>
+        <p style={{ color: 'var(--text-muted)' }}>Loading curated pickle bundles for you.</p>
       </div>
     );
   }
@@ -132,12 +178,47 @@ export default function GiftBuilderPage() {
           CURATED GIFTING
         </span>
         <h1 className="font-handwriting" style={{ fontSize: '4.5rem', margin: '10px 0 15px', color: 'var(--text-main)', lineHeight: 1.1 }}>
-          Build a Gift Box
+          Festival Bundle Builder
         </h1>
         <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
-          Choose your favorite pickles, pick a wrapping style, add a personalized letter, and create a truly royal gift.
+          Choose curated festival bundles or build your own custom gift box with Jaipur&apos;s finest artisanal pickles.
         </p>
       </div>
+
+      {/* Festival Bundles Showcase */}
+      {bundles.length > 0 && (
+        <div style={{ marginBottom: '50px' }}>
+          <h3 className="heading-serif" style={{ fontSize: '1.6rem', marginBottom: '24px', textAlign: 'center' }}>
+            🎉 Curated Festival Bundles ({bundles.length})
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+            {bundles.map(bundle => (
+              <div key={bundle.id} className="card" style={{
+                padding: '24px',
+                border: '1px solid var(--border-light)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }} onClick={() => handleSelectBundle(bundle)}>
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>{bundle.name}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, flexGrow: 1 }}>
+                  {bundle.description}
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                  <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--color-accent-light)', padding: '4px 8px', borderRadius: '2px', color: 'var(--color-accent)' }}>
+                    {bundle.productIds.length} jars
+                  </span>
+                  <button className="btn-lux-secondary" style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                    Use Bundle
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Progress Bar / Steps Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '20px', marginBottom: '40px' }}>
@@ -165,6 +246,52 @@ export default function GiftBuilderPage() {
             <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>Running Total: <strong>₹{getJarsTotal()}</strong></span>
           </div>
 
+          {/* Gift-Ready Products Section */}
+          {getGiftReadyProducts().length > 0 && (
+            <div style={{ marginBottom: '30px' }}>
+<h4 className="heading-serif" style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--color-accent)' }}>
+                 🏆 Best For Gifting
+               </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                {getGiftReadyProducts().map(product => {
+                  const isSelected = selectedProductIds.includes(product.id);
+                  return (
+                    <div 
+                      key={product.id}
+                      onClick={() => handleProductToggle(product.id)}
+                      style={{
+                        position: 'relative',
+                        border: isSelected ? '2.5px solid var(--color-accent)' : '1px solid var(--border-medium)',
+                        padding: '16px',
+                        backgroundColor: isSelected ? 'var(--color-accent-light)' : 'white',
+                        cursor: 'pointer',
+                        borderRadius: '2px',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        backgroundImage: `url(${product.imageUrl || '/placeholder.png'})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        marginBottom: '12px',
+                        border: '1px solid var(--border-light)'
+                      }} />
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>{product.name}</h4>
+                      <strong style={{ color: 'var(--color-accent)', fontSize: '1rem' }}>₹{product.price}</strong>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px', marginBottom: '40px' }}>
             {products.map(product => {
               const isSelected = selectedProductIds.includes(product.id);
@@ -186,7 +313,23 @@ export default function GiftBuilderPage() {
                     textAlign: 'center'
                   }}
                 >
-                  {/* Image slot */}
+                  {product.isGiftReady && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      right: '8px',
+                      backgroundColor: 'var(--color-accent)',
+                      color: 'white',
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '2px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Gift-Ready
+                    </div>
+                  )}
                   <div style={{
                     width: '120px',
                     height: '120px',
@@ -298,7 +441,7 @@ export default function GiftBuilderPage() {
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <h3 className="heading-serif" style={{ fontSize: '1.8rem', marginBottom: '16px', textAlign: 'center' }}>Add a Personal Message</h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '24px', textAlign: 'center' }}>
-            We'll print this letter on a handcrafted sheet of cardstock to place inside the box. (Optional)
+            We&apos;ll print this letter on a handcrafted sheet of cardstock to place inside the box. (Optional)
           </p>
 
           <div className="form-group" style={{ marginBottom: '30px' }}>
@@ -368,11 +511,16 @@ export default function GiftBuilderPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={prevStep} className="btn-lux-secondary">
-              &larr; Back
-            </button>
-            <button onClick={handleAddToCart} className="btn-lux-primary">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={prevStep} className="btn-lux-secondary" style={{ flex: 1 }}>
+                &larr; Back
+              </button>
+              <button onClick={handleShareGiftPreview} className="btn-lux-secondary" style={{ flex: 1, backgroundColor: '#38A169', borderColor: '#38A169', color: 'white' }}>
+                📱 Share Preview
+              </button>
+            </div>
+            <button onClick={handleAddToCart} className="btn-lux-primary" style={{ width: '100%' }}>
               🎁 Add Gift Box to Cart
             </button>
           </div>

@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
-    const { title, content, coverImage, isPublished } = await req.json();
+    const { title, content, coverImage, isPublished, tags, productIds, isFromKitchen } = await req.json();
 
     if (!title || !content) {
       return NextResponse.json({ success: false, error: 'Title and content are required' }, { status: 400 });
@@ -22,7 +22,10 @@ export async function POST(req: Request) {
         coverImage: coverImage || null,
         isPublished: isPublished || false,
         slug,
-        publishedAt: isPublished ? new Date() : null
+        publishedAt: isPublished ? new Date() : null,
+        tags: Array.isArray(tags) ? tags : [],
+        productIds: Array.isArray(productIds) ? productIds : [],
+        isFromKitchen: isFromKitchen || false
       }
     });
 
@@ -30,6 +33,19 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error creating blog post:', error);
     const msg = error instanceof Error ? error.message : 'Failed to create blog post';
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      orderBy: { publishedAt: 'desc' }
+    });
+    return NextResponse.json({ posts });
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to fetch blog posts';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
